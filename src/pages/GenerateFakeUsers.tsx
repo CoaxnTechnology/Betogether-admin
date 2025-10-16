@@ -41,7 +41,12 @@ const FakeUsersTable: React.FC = () => {
     setLoading(true);
     try {
       const res = await axios.get("/fake-users");
-      setFakeUsers(res.data.data || []);
+      // Sort descending by creation date so newest appear first
+      const users = (res.data.data || []).sort(
+        (a: FakeUser, b: FakeUser) =>
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      );
+      setFakeUsers(users);
       toast.success("Fake users fetched successfully");
     } catch (err: any) {
       console.error(err);
@@ -62,10 +67,14 @@ const FakeUsersTable: React.FC = () => {
     setResult(null);
     try {
       const res = await axios.post("/generate-fake-users", { count, country });
-      const createdCount = res.data.generatedCount || count;
+      const createdUsers: FakeUser[] = res.data.generatedUsers || [];
+      const createdCount = createdUsers.length || count;
+
       setResult({ createdCount });
       toast.success(`✅ Created ${createdCount} fake users for ${country}`);
-      fetchFakeUsers();
+
+      // Prepend newly created users to the table
+      setFakeUsers((prev) => [...createdUsers, ...prev]);
     } catch (err: any) {
       console.error(err);
       toast.error(err.response?.data?.error || err.message);
