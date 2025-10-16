@@ -37,6 +37,7 @@ const CategoryPage: React.FC = () => {
   const fetchCategories = async (page = 1, limit = recordsPerPage) => {
     try {
       const res = await axios.post("/category/all", { page, limit });
+      console.log("Fetched categories:", res.data);
       if (res.data?.isSuccess) {
         const formattedCategories: Category[] = res.data.data.map(
           (cat: Category) => ({
