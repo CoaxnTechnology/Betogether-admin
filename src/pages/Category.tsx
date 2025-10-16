@@ -237,7 +237,7 @@ const CategoryPage: React.FC = () => {
                 disabled={isGeneratingTags}
                 className="bg-purple-600 text-white px-0.5 py-0.5 rounded-lg hover:bg-purple-700 text-sm md:text-base"
               >
-                {isGeneratingTags ? "Generating..." : "Generate AI Tags"}
+                {isGeneratingTags ? "Generating..." : "Generate  Tags"}
               </button>
             </div>
 
