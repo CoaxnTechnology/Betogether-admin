@@ -9,10 +9,10 @@ import "react-toastify/dist/ReactToastify.css";
 
 interface UserType {
   _id: string;
-  name: string;
-  email: string;
-  mobile?: string;
-  status: string;
+  name?: string;
+  email?: string;
+  mobile?: string | null;
+  status?: string;
   profile_image?: string | null;
   created_at?: string;
 }
@@ -22,11 +22,15 @@ export default function User() {
   const [users, setUsers] = useState<UserType[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // ✅ Pagination state
+  // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const [recordsPerPage, setRecordsPerPage] = useState(10);
 
-  // ✅ Fetch users from API
+  // Helper to safely display field values
+  const displayValue = (val?: string | null) =>
+    val && val.trim() !== "" && val !== "null" ? val : "N/A";
+
+  // Fetch users from API
   useEffect(() => {
     const fetchUsers = async () => {
       try {
@@ -50,13 +54,13 @@ export default function User() {
     fetchUsers();
   }, []);
 
-  // ✅ Pagination logic
+  // Pagination logic
   const indexOfLastRecord = currentPage * recordsPerPage;
   const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
   const currentRecords = users.slice(indexOfFirstRecord, indexOfLastRecord);
   const totalPages = Math.ceil(users.length / recordsPerPage);
 
-  // ✅ Export Excel
+  // Export Excel
   const exportToExcel = () => {
     try {
       const dataForExport = users.map(({ profile_image, ...rest }) => rest);
@@ -67,9 +71,7 @@ export default function User() {
         bookType: "xlsx",
         type: "array",
       });
-      const data = new Blob([excelBuffer], {
-        type: "application/octet-stream",
-      });
+      const data = new Blob([excelBuffer], { type: "application/octet-stream" });
       saveAs(data, "Users_List.xlsx");
       toast.success("Excel exported successfully");
     } catch (err) {
@@ -88,14 +90,10 @@ export default function User() {
 
   return (
     <div className="p-3 md:p-6 bg-gray-50 min-h-screen relative">
-      <ToastContainer
-        position="top-right"
-        autoClose={3000}
-        hideProgressBar={false}
-      />
+      <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} />
 
       <div className="border rounded-lg shadow bg-white">
-        {/* ✅ Header */}
+        {/* Header */}
         <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center bg-blue-500 text-white p-3 md:p-4 rounded-t-lg gap-3">
           <h2 className="font-semibold flex items-center gap-2 text-base md:text-lg">
             <span className="text-lg md:text-xl">👥</span> Users List
@@ -109,7 +107,7 @@ export default function User() {
           </button>
         </div>
 
-        {/* ✅ Table */}
+        {/* Table */}
         <div className="overflow-x-auto">
           <table className="w-full border-collapse text-xs md:text-sm min-w-[700px]">
             <thead>
@@ -125,27 +123,20 @@ export default function User() {
             </thead>
             <tbody>
               {currentRecords.map((user, i) => (
-                <tr
-                  key={user._id}
-                  className={i % 2 === 0 ? "bg-white" : "bg-gray-50"}
-                >
+                <tr key={user._id} className={i % 2 === 0 ? "bg-white" : "bg-gray-50"}>
                   <td className="p-2 border">
                     <img
                       src={
                         user.profile_image ||
                         "https://cdn-icons-png.flaticon.com/512/847/847969.png"
                       }
-                      alt={user.name}
+                      alt={displayValue(user.name)}
                       className="w-10 h-10 rounded-full object-cover"
                     />
                   </td>
-                  <td className="p-2 border">{user.name || "N/A"}</td>
-                  <td className="p-2 border">{user.email || "N/A"}</td>
-                  <td className="p-2 border">
-                    {user.mobile !== null && user.mobile !== ""
-                      ? user.mobile
-                      : "N/A"}
-                  </td>
+                  <td className="p-2 border">{displayValue(user.name)}</td>
+                  <td className="p-2 border">{displayValue(user.email)}</td>
+                  <td className="p-2 border">{displayValue(user.mobile)}</td>
                   <td className="p-2 border">
                     <span
                       className={`px-2 py-1 text-xs font-semibold rounded ${
@@ -154,13 +145,11 @@ export default function User() {
                           : "bg-red-100 text-red-700"
                       }`}
                     >
-                      {user.status}
+                      {displayValue(user.status)}
                     </span>
                   </td>
                   <td className="p-2 border">
-                    {user.created_at
-                      ? new Date(user.created_at).toLocaleDateString()
-                      : "-"}
+                    {user.created_at ? new Date(user.created_at).toLocaleDateString() : "N/A"}
                   </td>
                   <td className="p-2 border">
                     <div className="flex gap-2">
@@ -181,7 +170,7 @@ export default function User() {
           </table>
         </div>
 
-        {/* ✅ Pagination Controls */}
+        {/* Pagination Controls */}
         <div className="flex flex-col md:flex-row justify-between items-center gap-3 p-3 border-t bg-gray-50">
           <div className="flex items-center gap-2 text-sm">
             <label>Rows per page:</label>
