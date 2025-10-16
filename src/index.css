@@ -1,0 +1,142 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* HRMS Design System - Professional & Modern */
+
+@layer base {
+  :root {
+    /* Core Colors */
+    --background: 210 20% 98%;
+    --foreground: 220 15% 20%;
+
+    /* Card System */
+    --card: 0 0% 100%;
+    --card-foreground: 220 15% 20%;
+
+    /* Popover */
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 15% 20%;
+
+    /* Brand Colors */
+    --primary: 210 100% 56%;
+    --primary-foreground: 0 0% 100%;
+    --primary-glow: 210 100% 70%;
+
+    /* Secondary System */
+    --secondary: 220 20% 95%;
+    --secondary-foreground: 220 15% 25%;
+
+    /* Muted Colors */
+    --muted: 220 15% 95%;
+    --muted-foreground: 220 10% 50%;
+
+    /* Accent Colors */
+    --accent: 168 100% 50%;
+    --accent-foreground: 0 0% 100%;
+
+    /* Status Colors */
+    --success: 142 70% 45%;
+    --success-foreground: 0 0% 100%;
+    --warning: 45 90% 55%;
+    --warning-foreground: 220 15% 20%;
+    --destructive: 0 70% 55%;
+    --destructive-foreground: 0 0% 100%;
+
+    /* UI Elements */
+    --border: 220 15% 90%;
+    --input: 220 15% 95%;
+    --ring: 210 100% 56%;
+
+    --radius: 0.5rem;
+
+    /* Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(210 100% 56%), hsl(168 100% 50%));
+    --gradient-secondary: linear-gradient(135deg, hsl(220 20% 95%), hsl(210 20% 98%));
+    --gradient-card: linear-gradient(145deg, hsl(0 0% 100%), hsl(220 15% 98%));
+    --gradient-sidebar: linear-gradient(180deg, hsl(220 25% 15%), hsl(220 30% 10%));
+
+    /* Shadows */
+    --shadow-card: 0 4px 20px -2px hsl(220 15% 20% / 0.1);
+    --shadow-hover: 0 8px 30px -4px hsl(210 100% 56% / 0.3);
+    --shadow-focus: 0 0 0 3px hsl(210 100% 56% / 0.3);
+
+    /* Sidebar System */
+    --sidebar-background: 220 25% 15%;
+    --sidebar-foreground: 220 15% 85%;
+    --sidebar-primary: 210 100% 56%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 220 20% 20%;
+    --sidebar-accent-foreground: 220 15% 85%;
+    --sidebar-border: 220 20% 20%;
+    --sidebar-ring: 210 100% 56%;
+
+    /* Animations */
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-fast: all 0.15s ease-out;
+  }
+
+  .dark {
+    /* Dark mode overrides */
+    --background: 220 25% 8%;
+    --foreground: 220 15% 95%;
+    --card: 220 25% 10%;
+    --card-foreground: 220 15% 95%;
+    --popover: 220 25% 10%;
+    --popover-foreground: 220 15% 95%;
+    --primary: 210 100% 60%;
+    --primary-foreground: 220 25% 8%;
+    --secondary: 220 25% 12%;
+    --secondary-foreground: 220 15% 90%;
+    --muted: 220 25% 12%;
+    --muted-foreground: 220 10% 60%;
+    --accent: 168 100% 55%;
+    --accent-foreground: 220 25% 8%;
+    --border: 220 25% 15%;
+    --input: 220 25% 15%;
+    --ring: 210 100% 60%;
+    --sidebar-background: 220 30% 5%;
+    --sidebar-foreground: 220 15% 90%;
+    --sidebar-primary: 210 100% 60%;
+    --sidebar-primary-foreground: 220 30% 5%;
+    --sidebar-accent: 220 25% 8%;
+    --sidebar-accent-foreground: 220 15% 90%;
+    --sidebar-border: 220 25% 10%;
+    --sidebar-ring: 210 100% 60%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+  }
+
+  /* Custom utility classes */
+  .gradient-primary {
+    background: var(--gradient-primary);
+  }
+
+  .gradient-card {
+    background: var(--gradient-card);
+  }
+
+  .shadow-card {
+    box-shadow: var(--shadow-card);
+  }
+
+  .shadow-hover {
+    box-shadow: var(--shadow-hover);
+  }
+
+  .transition-smooth {
+    transition: var(--transition-smooth);
+  }
+
+  .transition-fast {
+    transition: var(--transition-fast);
+  }
+}
