@@ -4,6 +4,8 @@ import axios from "../API/baseUrl";
 import { toast, ToastContainer } from "react-toastify";
 import { Button } from "@/components/ui/button";
 import "react-toastify/dist/ReactToastify.css";
+
+// ---------------- Types ----------------
 interface Category {
   _id: string;
   name: string;
@@ -12,7 +14,9 @@ interface Category {
   created_at?: string;
 }
 
+// ---------------- Component ----------------
 const CategoryPage: React.FC = () => {
+  // -------- State --------
   const [categories, setCategories] = useState<Category[]>([]);
   const [name, setName] = useState("");
   const [image, setImage] = useState<File | null>(null);
@@ -24,19 +28,28 @@ const CategoryPage: React.FC = () => {
   const [isGeneratingTags, setIsGeneratingTags] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
 
-  // Pagination states
+  // Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const [recordsPerPage, setRecordsPerPage] = useState(10);
   const [totalPages, setTotalPages] = useState(1);
 
-  // Fetch categories with pagination
+  // -------- Fetch categories --------
   const fetchCategories = async (page = 1, limit = recordsPerPage) => {
     try {
       const res = await axios.post("/category/all", { page, limit });
       if (res.data?.isSuccess) {
-        setCategories(res.data.data);
-        setTotalPages(res.data.totalPages);
-        toast.success("Categories fetched successfully");
+        const formattedCategories: Category[] = res.data.data.map(
+          (cat: Category) => ({
+            ...cat,
+            tags: Array.isArray(cat.tags)
+              ? cat.tags
+              : typeof cat.tags === "string"
+              ? JSON.parse(cat.tags)
+              : [],
+          })
+        );
+        setCategories(formattedCategories);
+        setTotalPages(res.data.totalPages || 1);
       }
     } catch (err) {
       console.error("Failed to fetch categories:", err);
@@ -48,12 +61,13 @@ const CategoryPage: React.FC = () => {
     fetchCategories(currentPage, recordsPerPage);
   }, [currentPage, recordsPerPage]);
 
-  // Handle manual tags
+  // -------- Tag handling --------
   const addManualTag = () => {
-    if (manualTag.trim() && !tags.includes(manualTag.trim())) {
-      setTags([...tags, manualTag.trim()]);
-      toast.info(`Tag "${manualTag.trim()}" added`);
+    const trimmed = manualTag.trim();
+    if (trimmed && !tags.includes(trimmed)) {
+      setTags([...tags, trimmed]);
       setManualTag("");
+      toast.info(`Tag "${trimmed}" added`);
     }
   };
 
@@ -62,18 +76,24 @@ const CategoryPage: React.FC = () => {
     toast.info(`Tag "${tag}" removed`);
   };
 
-  // Fetch AI-generated tags (only once for new category)
-  const fetchAutoTags = async (categoryName: string) => {
-    if (!categoryName.trim() || editingCategory) return; // skip when editing
+  // -------- Manual AI Tag Generation --------
+  const handleGenerateAITags = async () => {
+    if (!name.trim()) return toast.error("Enter category name first");
+
     try {
       setIsGeneratingTags(true);
-      const res = await axios.post("/category/ai-tags", { text: categoryName });
+      const res = await axios.post("/category/ai-tags", { text: name });
       if (res.data?.isSuccess && Array.isArray(res.data.tags)) {
+        // Remove old AI-generated tags
+        setTags((prev) => [
+          ...prev.filter((t) => !autoTags.includes(t)),
+          ...res.data.tags,
+        ]);
         setAutoTags(res.data.tags);
-        setTags((prev) => Array.from(new Set([...prev, ...res.data.tags])));
-        toast.success("AI tags generated successfully");
+        toast.success("AI tags generated");
       } else {
         setAutoTags([]);
+        toast.error("No AI tags generated");
       }
     } catch (err) {
       console.error("AI Tag Generation Failed:", err);
@@ -83,18 +103,7 @@ const CategoryPage: React.FC = () => {
     }
   };
 
-  // Debounce AI tag generation only for new category
-  useEffect(() => {
-    if (editingCategory) return; // skip API call when editing
-
-    const delayDebounce = setTimeout(() => {
-      if (name.trim()) fetchAutoTags(name);
-    }, 800);
-
-    return () => clearTimeout(delayDebounce);
-  }, [name, editingCategory]);
-
-  // Handle image preview
+  // -------- Image preview --------
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -103,7 +112,7 @@ const CategoryPage: React.FC = () => {
     }
   };
 
-  // Save category (Create / Update)
+  // -------- Save (Create / Update) --------
   const handleSave = async () => {
     if (!name) return toast.error("Category name is required");
     if (tags.length === 0)
@@ -134,14 +143,15 @@ const CategoryPage: React.FC = () => {
       }
       resetForm();
       fetchCategories(currentPage, recordsPerPage);
-    } catch {
+    } catch (err) {
+      console.error(err);
       toast.error("Failed to save category");
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Delete category
+  // -------- Delete --------
   const handleDelete = async (id: string) => {
     if (!window.confirm("Are you sure you want to delete this category?"))
       return;
@@ -156,7 +166,7 @@ const CategoryPage: React.FC = () => {
     }
   };
 
-  // Reset form
+  // -------- Reset form --------
   const resetForm = () => {
     setName("");
     setImage(null);
@@ -167,18 +177,17 @@ const CategoryPage: React.FC = () => {
     setEditingCategory(null);
   };
 
-  // Edit category
+  // -------- Edit --------
   const handleEdit = (cat: Category) => {
     setEditingCategory(cat);
     setName(cat.name);
     setTags(cat.tags || []);
     setImage(null);
     setPreview(cat.image);
-    // Do NOT call AI tags API here
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  // Export categories as JSON
+  // -------- Export --------
   const handleExport = () => {
     const dataStr =
       "data:text/json;charset=utf-8," +
@@ -190,9 +199,9 @@ const CategoryPage: React.FC = () => {
     toast.success("Categories exported successfully");
   };
 
+  // -------- Render --------
   return (
     <div className="p-4 md:p-6 bg-gray-50 min-h-screen relative">
-      {/* Loader overlay */}
       {(isLoading || isGeneratingTags) && (
         <div className="absolute inset-0 bg-white/70 flex items-center justify-center z-50">
           <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
@@ -212,14 +221,25 @@ const CategoryPage: React.FC = () => {
             {editingCategory ? "Edit Category" : "Create Category"}
           </h2>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <input
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Category name"
-              className="border rounded-lg px-4 py-2 w-full focus:ring-2 focus:ring-blue-300 text-sm md:text-base"
-            />
+          {/* Category Name + AI Button + Image Input */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Category name"
+                className="border rounded-lg px-4 py-2 w-full focus:ring-2 focus:ring-blue-300 text-sm md:text-base"
+              />
+              <button
+                onClick={handleGenerateAITags}
+                disabled={isGeneratingTags}
+                className="bg-purple-600 text-white px-0.5 py-0.5 rounded-lg hover:bg-purple-700 text-sm md:text-base"
+              >
+                {isGeneratingTags ? "Generating..." : "Generate AI Tags"}
+              </button>
+            </div>
+
             <input
               type="file"
               accept="image/*"
@@ -227,6 +247,7 @@ const CategoryPage: React.FC = () => {
               className="border rounded-lg px-4 py-2 w-full text-sm md:text-base"
             />
           </div>
+
           {preview && (
             <img
               src={preview}
@@ -235,17 +256,11 @@ const CategoryPage: React.FC = () => {
             />
           )}
 
-          {/* TAGS */}
+          {/* Tags */}
           <div>
             <label className="block font-medium mb-2 text-gray-700 text-sm md:text-base">
               Tags (Auto + Manual)
             </label>
-
-            {isGeneratingTags && (
-              <p className="text-sm text-gray-500 mb-2">
-                🤖 Generating AI tags...
-              </p>
-            )}
 
             {tags.length > 0 && (
               <div className="flex flex-wrap gap-2 mb-3">
@@ -283,7 +298,7 @@ const CategoryPage: React.FC = () => {
             </div>
           </div>
 
-          {/* Buttons */}
+          {/* Save / Cancel Buttons */}
           <div className="flex flex-col sm:flex-row gap-3">
             <button
               onClick={handleSave}
@@ -313,12 +328,6 @@ const CategoryPage: React.FC = () => {
             <h3 className="text-lg font-semibold flex items-center gap-2">
               📂 Category List
             </h3>
-            <button
-              onClick={handleExport}
-              className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg text-sm w-full sm:w-auto"
-            >
-              Export
-            </button>
           </div>
 
           <div className="overflow-x-auto">
@@ -402,7 +411,7 @@ const CategoryPage: React.FC = () => {
             </table>
           </div>
 
-          {/* PAGINATION */}
+          {/* Pagination */}
           <div className="flex flex-col md:flex-row justify-between items-center gap-3 p-3 border-t bg-gray-50 text-sm">
             <div className="flex items-center gap-2">
               <label>Rows per page:</label>
@@ -419,7 +428,6 @@ const CategoryPage: React.FC = () => {
                 <option value={20}>20</option>
               </select>
             </div>
-
             <div className="flex items-center gap-2">
               <Button
                 variant="outline"
