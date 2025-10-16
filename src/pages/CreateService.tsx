@@ -1,6 +1,8 @@
 import React, { useState, ChangeEvent, FormEvent, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import axios from "../API/baseUrl";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 // 🧩 Types
 interface ServiceForm {
@@ -46,6 +48,7 @@ interface Category {
 }
 
 const CreateService: React.FC = () => {
+  const Navigate = useNavigate();
   const { userId } = useParams<RouteParams>();
   const [categories, setCategories] = useState<Category[]>([]);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
@@ -98,15 +101,14 @@ const CreateService: React.FC = () => {
     }));
   };
   const handleDaySelect = (day) => {
-  setFormData((prev) => ({
-    ...prev,
-    selectedDays: prev.selectedDays.includes(day)
-      ? prev.selectedDays.filter((d) => d !== day)
-      : [...prev.selectedDays, day],
-  }));
-};
-console.log("FormData before submit:", formData.selectedDays);
-
+    setFormData((prev) => ({
+      ...prev,
+      selectedDays: prev.selectedDays.includes(day)
+        ? prev.selectedDays.filter((d) => d !== day)
+        : [...prev.selectedDays, day],
+    }));
+  };
+  console.log("FormData before submit:", formData.selectedDays);
 
   // 🟣 Handle category selection
   const handleCategorySelect = (cat: Category) => {
@@ -275,7 +277,8 @@ console.log("FormData before submit:", formData.selectedDays);
 
       const res = await axios.post("/create", payload);
       console.log("Service created:", res.data);
-      alert("Service created successfully!");
+      toast.success("Service created successfully");
+      Navigate("/FakeUser");
     } catch (err: any) {
       console.error("Error:", err.response?.data || err.message);
       alert(err.response?.data?.message || err.message);
@@ -283,8 +286,7 @@ console.log("FormData before submit:", formData.selectedDays);
       setLoading(false);
     }
   };
-const days = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"];
-
+  const days = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"];
 
   return (
     <div className="max-w-3xl mx-auto px-6 py-8 sm:px-10 bg-gradient-to-br from-purple-50 via-white to-blue-50 rounded-3xl shadow-2xl my-10 border border-gray-100">
