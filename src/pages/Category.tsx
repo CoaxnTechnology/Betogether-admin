@@ -119,7 +119,8 @@ const CategoryPage: React.FC = () => {
   // -------- Save (Create / Update) --------
   const handleSave = async () => {
     if (!name) return toast.error("Category name is required");
-    if (tags.length === 0) return toast.error("Please provide at least one tag");
+    if (tags.length === 0)
+      return toast.error("Please provide at least one tag");
 
     const formData = new FormData();
     formData.append("name", name);
@@ -130,9 +131,13 @@ const CategoryPage: React.FC = () => {
       setIsLoading(true);
       let res;
       if (editingCategory) {
-        res = await axios.put(`/category/update/${editingCategory._id}`, formData, {
-          headers: { "Content-Type": "multipart/form-data" },
-        });
+        res = await axios.put(
+          `/category/update/${editingCategory._id}`,
+          formData,
+          {
+            headers: { "Content-Type": "multipart/form-data" },
+          }
+        );
         if (res.data?.isSuccess) toast.success("Category updated successfully");
       } else {
         res = await axios.post("/category/create", formData, {
@@ -152,7 +157,8 @@ const CategoryPage: React.FC = () => {
 
   // -------- Delete --------
   const handleDelete = async (id: string) => {
-    if (!window.confirm("Are you sure you want to delete this category?")) return;
+    if (!window.confirm("Are you sure you want to delete this category?"))
+      return;
     try {
       const res = await axios.delete(`/category/delete/${id}`);
       if (res.data?.isSuccess) {
@@ -189,7 +195,10 @@ const CategoryPage: React.FC = () => {
   const exportToExcel = async () => {
     try {
       setIsLoading(true);
-      const res = await axios.post("/category/all", { page: 1, limit: 1000000000 });
+      const res = await axios.post("/category/all", {
+        page: 1,
+        limit: 1000000000,
+      });
       let categories = res.data?.data || [];
 
       if (categories.length === 0) {
@@ -198,16 +207,29 @@ const CategoryPage: React.FC = () => {
       }
 
       categories = categories.map(
-        ({ categoryId, provider_share, seeker_share, discount_percentage, __v, ...rest }) =>
-          rest
+        ({
+          categoryId,
+          provider_share,
+          seeker_share,
+          discount_percentage,
+          imagePublicId,
+          __v,
+          ...rest
+        }) => rest
       );
 
       const worksheet = XLSX.utils.json_to_sheet(categories);
       const workbook = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(workbook, worksheet, "Categories");
 
-      const csvBuffer = XLSX.write(workbook, { bookType: "csv", type: "array" });
-      saveAs(new Blob([csvBuffer], { type: "text/csv;charset=utf-8" }), "categories_export.csv");
+      const csvBuffer = XLSX.write(workbook, {
+        bookType: "csv",
+        type: "array",
+      });
+      saveAs(
+        new Blob([csvBuffer], { type: "text/csv;charset=utf-8" }),
+        "categories_export.csv"
+      );
 
       toast.success("Category data exported successfully!");
     } catch (error) {
@@ -227,7 +249,11 @@ const CategoryPage: React.FC = () => {
         </div>
       )}
 
-      <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} />
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+      />
 
       <div className="max-w-7xl mx-auto space-y-6">
         {/* FORM SECTION */}
@@ -264,7 +290,11 @@ const CategoryPage: React.FC = () => {
           </div>
 
           {preview && (
-            <img src={preview} alt="Preview" className="w-32 h-32 object-cover mt-2 rounded-lg" />
+            <img
+              src={preview}
+              alt="Preview"
+              className="w-32 h-32 object-cover mt-2 rounded-lg"
+            />
           )}
 
           {/* Tags Section */}
@@ -280,7 +310,10 @@ const CategoryPage: React.FC = () => {
                     className="bg-purple-200 text-purple-800 text-xs md:text-sm px-2 py-1 rounded-full flex items-center gap-1"
                   >
                     {tag}
-                    <button onClick={() => removeTag(tag)} className="text-red-500 hover:text-red-700">
+                    <button
+                      onClick={() => removeTag(tag)}
+                      className="text-red-500 hover:text-red-700"
+                    >
                       ×
                     </button>
                   </span>
@@ -312,7 +345,11 @@ const CategoryPage: React.FC = () => {
               disabled={isLoading}
               className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 w-full sm:w-auto text-sm md:text-base"
             >
-              {isLoading ? "Saving..." : editingCategory ? "Update Category" : "Create Category"}
+              {isLoading
+                ? "Saving..."
+                : editingCategory
+                ? "Update Category"
+                : "Create Category"}
             </button>
             {editingCategory && (
               <button
@@ -328,7 +365,9 @@ const CategoryPage: React.FC = () => {
         {/* TABLE SECTION */}
         <div className="bg-white rounded-lg shadow overflow-hidden">
           <div className="flex flex-col sm:flex-row justify-between items-center gap-3 bg-blue-600 text-white p-4 rounded-t-lg">
-            <h3 className="text-lg font-semibold flex items-center gap-2">📂 Category List</h3>
+            <h3 className="text-lg font-semibold flex items-center gap-2">
+              📂 Category List
+            </h3>
             <button
               onClick={exportToExcel}
               className="bg-orange-500 hover:bg-orange-600 text-white text-xs md:text-sm px-3 py-1 md:px-4 md:py-2 rounded"
@@ -350,7 +389,9 @@ const CategoryPage: React.FC = () => {
                     <th className="p-2 md:p-3 border">Image</th>
                     <th className="p-2 md:p-3 border">Name</th>
                     <th className="p-2 md:p-3 border">Tags</th>
-                    <th className="p-2 md:p-3 border text-center">Created At</th>
+                    <th className="p-2 md:p-3 border text-center">
+                      Created At
+                    </th>
                     <th className="p-2 md:p-3 border text-center">Action</th>
                   </tr>
                 </thead>
@@ -412,7 +453,10 @@ const CategoryPage: React.FC = () => {
                     ))
                   ) : (
                     <tr>
-                      <td colSpan={5} className="text-center py-4 text-gray-500 border">
+                      <td
+                        colSpan={5}
+                        className="text-center py-4 text-gray-500 border"
+                      >
                         No categories found
                       </td>
                     </tr>
