@@ -4,6 +4,8 @@ import axios from "../API/baseUrl";
 import { toast, ToastContainer } from "react-toastify";
 import { Button } from "@/components/ui/button";
 import "react-toastify/dist/ReactToastify.css";
+import * as XLSX from "xlsx";
+import { saveAs } from "file-saver";
 
 // ---------------- Types ----------------
 interface Category {
@@ -189,15 +191,58 @@ const CategoryPage: React.FC = () => {
   };
 
   // -------- Export --------
-  const handleExport = () => {
-    const dataStr =
-      "data:text/json;charset=utf-8," +
-      encodeURIComponent(JSON.stringify(categories, null, 2));
-    const a = document.createElement("a");
-    a.href = dataStr;
-    a.download = "categories.json";
-    a.click();
-    toast.success("Categories exported successfully");
+  const exportToExcel = async () => {
+    try {
+      setIsLoading(true);
+
+      // 🔹 Fetch all category data from backend
+      const res = await axios.post("/category/all", {
+        page: 1,
+        limit: 1000000000,
+      });
+
+      let categories = res.data?.data || [];
+
+      if (categories.length === 0) {
+        toast.info("No categories found to export.");
+        return;
+      }
+
+      // 🔹 Exclude "categoryId" from each record
+      categories = categories.map(
+        ({
+          categoryId,
+          provider_share,
+          seeker_share,
+          discount_percentage,
+          __v,
+          ...rest
+        }) => rest
+      );
+
+      // 🔹 Convert to worksheet
+      const worksheet = XLSX.utils.json_to_sheet(categories);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Categories");
+
+      // 🔹 Generate and save CSV
+      const csvBuffer = XLSX.write(workbook, {
+        bookType: "csv",
+        type: "array",
+      });
+
+      saveAs(
+        new Blob([csvBuffer], { type: "text/csv;charset=utf-8" }),
+        "categories_export.csv"
+      );
+
+      toast.success("Category data exported successfully!");
+    } catch (error) {
+      console.error("Export Error:", error);
+      toast.error("Failed to export category data");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   // -------- Render --------
@@ -329,6 +374,12 @@ const CategoryPage: React.FC = () => {
             <h3 className="text-lg font-semibold flex items-center gap-2">
               📂 Category List
             </h3>
+            <button
+              onClick={exportToExcel}
+              className="bg-orange-500 hover:bg-orange-600 text-white text-xs md:text-sm px-3 py-1 md:px-4 md:py-2 rounded"
+            >
+              Export
+            </button>
           </div>
 
           <div className="overflow-x-auto">
