@@ -1,4 +1,3 @@
-// src/pages/admin/Category.tsx
 import React, { useEffect, useState } from "react";
 import axios from "../API/baseUrl";
 import { toast, ToastContainer } from "react-toastify";
@@ -28,6 +27,7 @@ const CategoryPage: React.FC = () => {
   const [autoTags, setAutoTags] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isGeneratingTags, setIsGeneratingTags] = useState(false);
+  const [isCategoryLoading, setIsCategoryLoading] = useState(true);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
 
   // Pagination
@@ -38,8 +38,8 @@ const CategoryPage: React.FC = () => {
   // -------- Fetch categories --------
   const fetchCategories = async (page = 1, limit = recordsPerPage) => {
     try {
+      setIsCategoryLoading(true);
       const res = await axios.post("/category/all", { page, limit });
-      console.log("Fetched categories:", res.data);
       if (res.data?.isSuccess) {
         const formattedCategories: Category[] = res.data.data.map(
           (cat: Category) => ({
@@ -57,6 +57,8 @@ const CategoryPage: React.FC = () => {
     } catch (err) {
       console.error("Failed to fetch categories:", err);
       toast.error("Failed to fetch categories");
+    } finally {
+      setIsCategoryLoading(false);
     }
   };
 
@@ -87,7 +89,6 @@ const CategoryPage: React.FC = () => {
       setIsGeneratingTags(true);
       const res = await axios.post("/category/ai-tags", { text: name });
       if (res.data?.isSuccess && Array.isArray(res.data.tags)) {
-        // Remove old AI-generated tags
         setTags((prev) => [
           ...prev.filter((t) => !autoTags.includes(t)),
           ...res.data.tags,
@@ -118,8 +119,7 @@ const CategoryPage: React.FC = () => {
   // -------- Save (Create / Update) --------
   const handleSave = async () => {
     if (!name) return toast.error("Category name is required");
-    if (tags.length === 0)
-      return toast.error("Please provide at least one tag");
+    if (tags.length === 0) return toast.error("Please provide at least one tag");
 
     const formData = new FormData();
     formData.append("name", name);
@@ -130,13 +130,9 @@ const CategoryPage: React.FC = () => {
       setIsLoading(true);
       let res;
       if (editingCategory) {
-        res = await axios.put(
-          `/category/update/${editingCategory._id}`,
-          formData,
-          {
-            headers: { "Content-Type": "multipart/form-data" },
-          }
-        );
+        res = await axios.put(`/category/update/${editingCategory._id}`, formData, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
         if (res.data?.isSuccess) toast.success("Category updated successfully");
       } else {
         res = await axios.post("/category/create", formData, {
@@ -156,8 +152,7 @@ const CategoryPage: React.FC = () => {
 
   // -------- Delete --------
   const handleDelete = async (id: string) => {
-    if (!window.confirm("Are you sure you want to delete this category?"))
-      return;
+    if (!window.confirm("Are you sure you want to delete this category?")) return;
     try {
       const res = await axios.delete(`/category/delete/${id}`);
       if (res.data?.isSuccess) {
@@ -194,13 +189,7 @@ const CategoryPage: React.FC = () => {
   const exportToExcel = async () => {
     try {
       setIsLoading(true);
-
-      // 🔹 Fetch all category data from backend
-      const res = await axios.post("/category/all", {
-        page: 1,
-        limit: 1000000000,
-      });
-
+      const res = await axios.post("/category/all", { page: 1, limit: 1000000000 });
       let categories = res.data?.data || [];
 
       if (categories.length === 0) {
@@ -208,33 +197,17 @@ const CategoryPage: React.FC = () => {
         return;
       }
 
-      // 🔹 Exclude "categoryId" from each record
       categories = categories.map(
-        ({
-          categoryId,
-          provider_share,
-          seeker_share,
-          discount_percentage,
-          __v,
-          ...rest
-        }) => rest
+        ({ categoryId, provider_share, seeker_share, discount_percentage, __v, ...rest }) =>
+          rest
       );
 
-      // 🔹 Convert to worksheet
       const worksheet = XLSX.utils.json_to_sheet(categories);
       const workbook = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(workbook, worksheet, "Categories");
 
-      // 🔹 Generate and save CSV
-      const csvBuffer = XLSX.write(workbook, {
-        bookType: "csv",
-        type: "array",
-      });
-
-      saveAs(
-        new Blob([csvBuffer], { type: "text/csv;charset=utf-8" }),
-        "categories_export.csv"
-      );
+      const csvBuffer = XLSX.write(workbook, { bookType: "csv", type: "array" });
+      saveAs(new Blob([csvBuffer], { type: "text/csv;charset=utf-8" }), "categories_export.csv");
 
       toast.success("Category data exported successfully!");
     } catch (error) {
@@ -254,11 +227,7 @@ const CategoryPage: React.FC = () => {
         </div>
       )}
 
-      <ToastContainer
-        position="top-right"
-        autoClose={3000}
-        hideProgressBar={false}
-      />
+      <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} />
 
       <div className="max-w-7xl mx-auto space-y-6">
         {/* FORM SECTION */}
@@ -282,7 +251,7 @@ const CategoryPage: React.FC = () => {
                 disabled={isGeneratingTags}
                 className="bg-purple-600 text-white px-0.5 py-0.5 rounded-lg hover:bg-purple-700 text-sm md:text-base"
               >
-                {isGeneratingTags ? "Generating..." : "Generate  Tags"}
+                {isGeneratingTags ? "Generating..." : "Generate Tags"}
               </button>
             </div>
 
@@ -295,19 +264,14 @@ const CategoryPage: React.FC = () => {
           </div>
 
           {preview && (
-            <img
-              src={preview}
-              alt="Preview"
-              className="w-32 h-32 object-cover mt-2 rounded-lg"
-            />
+            <img src={preview} alt="Preview" className="w-32 h-32 object-cover mt-2 rounded-lg" />
           )}
 
-          {/* Tags */}
+          {/* Tags Section */}
           <div>
             <label className="block font-medium mb-2 text-gray-700 text-sm md:text-base">
               Tags (Auto + Manual)
             </label>
-
             {tags.length > 0 && (
               <div className="flex flex-wrap gap-2 mb-3">
                 {tags.map((tag, i) => (
@@ -316,10 +280,7 @@ const CategoryPage: React.FC = () => {
                     className="bg-purple-200 text-purple-800 text-xs md:text-sm px-2 py-1 rounded-full flex items-center gap-1"
                   >
                     {tag}
-                    <button
-                      onClick={() => removeTag(tag)}
-                      className="text-red-500 hover:text-red-700"
-                    >
+                    <button onClick={() => removeTag(tag)} className="text-red-500 hover:text-red-700">
                       ×
                     </button>
                   </span>
@@ -351,11 +312,7 @@ const CategoryPage: React.FC = () => {
               disabled={isLoading}
               className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 w-full sm:w-auto text-sm md:text-base"
             >
-              {isLoading
-                ? "Saving..."
-                : editingCategory
-                ? "Update Category"
-                : "Create Category"}
+              {isLoading ? "Saving..." : editingCategory ? "Update Category" : "Create Category"}
             </button>
             {editingCategory && (
               <button
@@ -371,9 +328,7 @@ const CategoryPage: React.FC = () => {
         {/* TABLE SECTION */}
         <div className="bg-white rounded-lg shadow overflow-hidden">
           <div className="flex flex-col sm:flex-row justify-between items-center gap-3 bg-blue-600 text-white p-4 rounded-t-lg">
-            <h3 className="text-lg font-semibold flex items-center gap-2">
-              📂 Category List
-            </h3>
+            <h3 className="text-lg font-semibold flex items-center gap-2">📂 Category List</h3>
             <button
               onClick={exportToExcel}
               className="bg-orange-500 hover:bg-orange-600 text-white text-xs md:text-sm px-3 py-1 md:px-4 md:py-2 rounded"
@@ -382,126 +337,132 @@ const CategoryPage: React.FC = () => {
             </button>
           </div>
 
-          <div className="overflow-x-auto">
-            <table className="min-w-full text-xs md:text-sm border-collapse">
-              <thead className="bg-gray-100">
-                <tr>
-                  <th className="p-2 md:p-3 border">Image</th>
-                  <th className="p-2 md:p-3 border">Name</th>
-                  <th className="p-2 md:p-3 border">Tags</th>
-                  <th className="p-2 md:p-3 border text-center">Created At</th>
-                  <th className="p-2 md:p-3 border text-center">Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {categories.length > 0 ? (
-                  categories.map((cat) => (
-                    <tr key={cat._id} className="hover:bg-gray-50">
-                      <td className="p-2 md:p-3 border">
-                        <img
-                          src={
-                            cat.image ||
-                            "https://cdn-icons-png.flaticon.com/512/847/847969.png"
-                          }
-                          alt={cat.name}
-                          className="w-8 h-8 md:w-10 md:h-10 rounded-full object-cover mx-auto"
-                        />
-                      </td>
-                      <td className="p-2 md:p-3 border font-medium text-center md:text-left">
-                        {cat.name}
-                      </td>
-                      <td className="p-2 md:p-3 border text-gray-600 text-center md:text-left">
-                        {cat.tags?.length ? (
-                          <div className="flex flex-wrap justify-center md:justify-start gap-1 md:gap-2">
-                            {cat.tags.map((tag, idx) => (
-                              <span
-                                key={idx}
-                                className="bg-purple-200 text-purple-800 text-xs px-2 py-1 rounded-full"
-                              >
-                                {tag}
-                              </span>
-                            ))}
+          {/* Category Loading Spinner */}
+          {isCategoryLoading ? (
+            <div className="flex justify-center items-center py-10">
+              <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="min-w-full text-xs md:text-sm border-collapse">
+                <thead className="bg-gray-100">
+                  <tr>
+                    <th className="p-2 md:p-3 border">Image</th>
+                    <th className="p-2 md:p-3 border">Name</th>
+                    <th className="p-2 md:p-3 border">Tags</th>
+                    <th className="p-2 md:p-3 border text-center">Created At</th>
+                    <th className="p-2 md:p-3 border text-center">Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {categories.length > 0 ? (
+                    categories.map((cat) => (
+                      <tr key={cat._id} className="hover:bg-gray-50">
+                        <td className="p-2 md:p-3 border">
+                          <img
+                            src={
+                              cat.image ||
+                              "https://cdn-icons-png.flaticon.com/512/847/847969.png"
+                            }
+                            alt={cat.name}
+                            className="w-8 h-8 md:w-10 md:h-10 rounded-full object-cover mx-auto"
+                          />
+                        </td>
+                        <td className="p-2 md:p-3 border font-medium text-center md:text-left">
+                          {cat.name}
+                        </td>
+                        <td className="p-2 md:p-3 border text-gray-600 text-center md:text-left">
+                          {cat.tags?.length ? (
+                            <div className="flex flex-wrap justify-center md:justify-start gap-1 md:gap-2">
+                              {cat.tags.map((tag, idx) => (
+                                <span
+                                  key={idx}
+                                  className="bg-purple-200 text-purple-800 text-xs px-2 py-1 rounded-full"
+                                >
+                                  {tag}
+                                </span>
+                              ))}
+                            </div>
+                          ) : (
+                            "-"
+                          )}
+                        </td>
+                        <td className="p-2 md:p-3 border text-center">
+                          {cat.created_at
+                            ? new Date(cat.created_at).toLocaleDateString()
+                            : "-"}
+                        </td>
+                        <td className="p-2 md:p-3 border text-center">
+                          <div className="flex flex-wrap justify-center gap-2">
+                            <button
+                              onClick={() => handleEdit(cat)}
+                              className="bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-1 rounded"
+                            >
+                              Edit
+                            </button>
+                            <button
+                              onClick={() => handleDelete(cat._id)}
+                              className="bg-red-500 hover:bg-red-600 text-white text-xs px-3 py-1 rounded"
+                            >
+                              Delete
+                            </button>
                           </div>
-                        ) : (
-                          "-"
-                        )}
-                      </td>
-                      <td className="p-2 md:p-3 border text-center">
-                        {cat.created_at
-                          ? new Date(cat.created_at).toLocaleDateString()
-                          : "-"}
-                      </td>
-                      <td className="p-2 md:p-3 border text-center">
-                        <div className="flex flex-wrap justify-center gap-2">
-                          <button
-                            onClick={() => handleEdit(cat)}
-                            className="bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-1 rounded"
-                          >
-                            Edit
-                          </button>
-                          <button
-                            onClick={() => handleDelete(cat._id)}
-                            className="bg-red-500 hover:bg-red-600 text-white text-xs px-3 py-1 rounded"
-                          >
-                            Delete
-                          </button>
-                        </div>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={5} className="text-center py-4 text-gray-500 border">
+                        No categories found
                       </td>
                     </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td
-                      colSpan={5}
-                      className="text-center py-4 text-gray-500 border"
-                    >
-                      No categories found
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          )}
 
           {/* Pagination */}
-          <div className="flex flex-col md:flex-row justify-between items-center gap-3 p-3 border-t bg-gray-50 text-sm">
-            <div className="flex items-center gap-2">
-              <label>Rows per page:</label>
-              <select
-                value={recordsPerPage}
-                onChange={(e) => {
-                  setRecordsPerPage(Number(e.target.value));
-                  setCurrentPage(1);
-                }}
-                className="border rounded px-2 py-1"
-              >
-                <option value={5}>5</option>
-                <option value={10}>10</option>
-                <option value={20}>20</option>
-              </select>
+          {!isCategoryLoading && (
+            <div className="flex flex-col md:flex-row justify-between items-center gap-3 p-3 border-t bg-gray-50 text-sm">
+              <div className="flex items-center gap-2">
+                <label>Rows per page:</label>
+                <select
+                  value={recordsPerPage}
+                  onChange={(e) => {
+                    setRecordsPerPage(Number(e.target.value));
+                    setCurrentPage(1);
+                  }}
+                  className="border rounded px-2 py-1"
+                >
+                  <option value={5}>5</option>
+                  <option value={10}>10</option>
+                  <option value={20}>20</option>
+                </select>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  disabled={currentPage === 1}
+                  onClick={() => setCurrentPage((p) => p - 1)}
+                  className="border-blue-800 hover:bg-blue-100 text-sm"
+                >
+                  Prev
+                </Button>
+                <span className="text-sm">
+                  Page {currentPage} of {totalPages}
+                </span>
+                <Button
+                  variant="outline"
+                  disabled={currentPage === totalPages}
+                  onClick={() => setCurrentPage((p) => p + 1)}
+                  className="border-blue-800 hover:bg-blue-100 text-sm"
+                >
+                  Next
+                </Button>
+              </div>
             </div>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                disabled={currentPage === 1}
-                onClick={() => setCurrentPage((p) => p - 1)}
-                className="border-blue-800 hover:bg-blue-100 text-sm"
-              >
-                Prev
-              </Button>
-              <span className="text-sm">
-                Page {currentPage} of {totalPages}
-              </span>
-              <Button
-                variant="outline"
-                disabled={currentPage === totalPages}
-                onClick={() => setCurrentPage((p) => p + 1)}
-                className="border-blue-800 hover:bg-blue-100 text-sm"
-              >
-                Next
-              </Button>
-            </div>
-          </div>
+          )}
         </div>
       </div>
     </div>
