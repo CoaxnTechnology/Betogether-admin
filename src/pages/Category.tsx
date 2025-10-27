@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import "react-toastify/dist/ReactToastify.css";
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
-import Swal from "sweetalert2"
+import Swal from "sweetalert2";
 // ---------------- Types ----------------
 interface Category {
   _id: string;
@@ -157,27 +157,27 @@ const CategoryPage: React.FC = () => {
 
   // -------- Delete --------
   const handleDelete = async (id: string) => {
-  const result = await Swal.fire({
-    title: "Are you sure?",
-    text: "This category will be deleted permanently!",
-    icon: "warning",
-    showCancelButton: true,
-    confirmButtonText: "Yes, delete!",
-    cancelButtonText: "Cancel",
-  });
+    const result = await Swal.fire({
+      title: "Are you sure?",
+      text: "This category will be deleted permanently!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Yes, delete!",
+      cancelButtonText: "Cancel",
+    });
 
-  if (!result.isConfirmed) return;
+    if (!result.isConfirmed) return;
 
-  try {
-    const res = await axios.delete(`/category/delete/${id}`);
-    if (res.data?.isSuccess) {
-      toast.success("Category deleted successfully ✅");
-      fetchCategories(currentPage, recordsPerPage);
+    try {
+      const res = await axios.delete(`/category/delete/${id}`);
+      if (res.data?.isSuccess) {
+        toast.success("Category deleted successfully ✅");
+        fetchCategories(currentPage, recordsPerPage);
+      }
+    } catch {
+      toast.error("Failed to delete category ❌");
     }
-  } catch {
-    toast.error("Failed to delete category ❌");
-  }
-};
+  };
 
   // -------- Reset form --------
   const resetForm = () => {
@@ -215,17 +215,14 @@ const CategoryPage: React.FC = () => {
         return;
       }
 
-      categories = categories.map(
-        ({
-          categoryId,
-          provider_share,
-          seeker_share,
-          discount_percentage,
-          imagePublicId,
-          __v,
-          ...rest
-        }) => rest
-      );
+      categories = categories.map((cat: any) => ({
+        name: cat.name,
+        image: cat.image,
+        tags: Array.isArray(cat.tags) ? cat.tags.join(", ") : "", // ✅ convert array → string
+        created_at: cat.created_at
+          ? new Date(cat.created_at).toLocaleDateString()
+          : "-",
+      }));
 
       const worksheet = XLSX.utils.json_to_sheet(categories);
       const workbook = XLSX.utils.book_new();
