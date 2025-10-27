@@ -83,16 +83,6 @@ export const Header: FC = () => {
           <SidebarTrigger className="hover:bg-blue-700 text-white shrink-0" />
 
           {/* Search */}
-          <div className="relative w-full max-w-full sm:max-w-md">
-            <MagnifyingGlass
-              size={20}
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-white/80"
-            />
-            <Input
-              placeholder="Search employees, payroll, reports..."
-              className="pl-10 bg-blue-500/40 border-none text-white placeholder:text-white/80 focus:bg-blue-500/60"
-            />
-          </div>
         </div>
 
         {/* Right - Icons & User */}
