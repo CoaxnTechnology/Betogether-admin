@@ -28,6 +28,9 @@ const FakeUsersTable: React.FC = () => {
 
   const countries = ["India", "Germany", "France", "Italy", "Spain", "Portugal"];
 
+  // CSV Upload
+  const [csvFile, setCsvFile] = useState<File | null>(null);
+
   const handleEdit = (userId: string) => {
     navigate(`/edit-user/${userId}`);
   };
@@ -36,15 +39,16 @@ const FakeUsersTable: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [recordsPerPage, setRecordsPerPage] = useState(10);
 
-  // Fetch fake users
   const fetchFakeUsers = async () => {
     setLoading(true);
     try {
       const res = await axios.get("/fake-users");
-      setFakeUsers(res.data.data || []);
-      toast.success("Fake users fetched successfully");
+      const users = (res.data.data || []).sort(
+        (a: FakeUser, b: FakeUser) =>
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      );
+      setFakeUsers(users);
     } catch (err: any) {
-      console.error(err);
       toast.error(err.response?.data?.error || err.message);
     } finally {
       setLoading(false);
@@ -55,7 +59,6 @@ const FakeUsersTable: React.FC = () => {
     fetchFakeUsers();
   }, []);
 
-  // Generate Fake Users
   const handleGenerate = async () => {
     if (count < 1) return toast.warning("Please enter at least 1 user.");
     setLoading(true);
@@ -64,17 +67,38 @@ const FakeUsersTable: React.FC = () => {
       const res = await axios.post("/generate-fake-users", { count, country });
       const createdCount = res.data.generatedCount || count;
       setResult({ createdCount });
-      toast.success(`✅ Created ${createdCount} fake users for ${country}`);
       fetchFakeUsers();
+      toast.success(`✅ Created ${createdCount} fake users for ${country}`);
     } catch (err: any) {
-      console.error(err);
       toast.error(err.response?.data?.error || err.message);
     } finally {
       setLoading(false);
     }
   };
 
-  // Delete Fake User
+  // ✅ CSV Upload API Call
+  const handleCSVUpload = async () => {
+    if (!csvFile) return toast.warning("Please upload a CSV file.");
+
+    const formData = new FormData();
+    formData.append("file", csvFile);
+
+    setLoading(true);
+    try {
+      const res = await axios.post("/upload-users-csv", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+
+      toast.success(res.data.message || "CSV Uploaded Successfully!");
+      fetchFakeUsers();
+      setCsvFile(null);
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || "Failed to upload CSV");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleDelete = async (userId: string) => {
     if (!confirm("Are you sure you want to delete this user?")) return;
     setLoading(true);
@@ -83,14 +107,12 @@ const FakeUsersTable: React.FC = () => {
       setFakeUsers(fakeUsers.filter((user) => user._id !== userId));
       toast.success("User deleted successfully");
     } catch (err: any) {
-      console.error(err);
       toast.error(err.response?.data?.error || err.message);
     } finally {
       setLoading(false);
     }
   };
 
-  // Pagination
   const currentRecords = fakeUsers.slice(
     (currentPage - 1) * recordsPerPage,
     currentPage * recordsPerPage
@@ -99,15 +121,35 @@ const FakeUsersTable: React.FC = () => {
 
   return (
     <div className="p-6 max-w-6xl mx-auto space-y-8 relative">
-      {/* Toast container */}
       <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} />
 
-      {/* Loader */}
       {loading && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
           <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
         </div>
       )}
+
+      {/* ✅ Upload CSV Card */}
+      <div className="bg-white shadow-lg rounded-2xl p-8 border border-gray-200">
+        <h2 className="text-3xl font-bold text-gray-800 mb-6 text-center">📂 Upload CSV to Create Users</h2>
+
+        <input
+          type="file"
+          accept=".csv"
+          onChange={(e) => setCsvFile(e.target.files?.[0] || null)}
+          className="w-full p-2 border rounded-lg"
+        />
+
+        <button
+          onClick={handleCSVUpload}
+          disabled={!csvFile || loading}
+          className={`mt-6 w-full py-3 rounded-xl text-white font-semibold ${
+            loading ? "bg-gray-400" : "bg-green-600 hover:bg-green-700 shadow-md hover:shadow-lg"
+          }`}
+        >
+          {loading ? "Uploading..." : "Upload CSV & Create Users"}
+        </button>
+      </div>
 
       {/* Generate Fake Users Card */}
       <div className="bg-white shadow-lg rounded-2xl p-8 border border-gray-200">
@@ -119,7 +161,7 @@ const FakeUsersTable: React.FC = () => {
             <select
               value={country}
               onChange={(e) => setCountry(e.target.value)}
-              className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              className="w-full border border-gray-300 rounded-lg px-4 py-2"
             >
               {countries.map((c) => (
                 <option key={c} value={c}>{c}</option>
@@ -135,7 +177,7 @@ const FakeUsersTable: React.FC = () => {
               max={500}
               value={count}
               onChange={(e) => setCount(Number(e.target.value))}
-              className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              className="w-full border border-gray-300 rounded-lg px-4 py-2"
             />
           </div>
         </div>
@@ -143,9 +185,7 @@ const FakeUsersTable: React.FC = () => {
         <button
           onClick={handleGenerate}
           disabled={loading}
-          className={`mt-6 w-full py-3 rounded-xl text-white font-semibold transition-all duration-300 ${
-            loading ? "bg-blue-400 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700 shadow-md hover:shadow-lg"
-          }`}
+          className="mt-6 w-full py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700"
         >
           {loading ? "Processing..." : `Generate ${count} Fake Users`}
         </button>
@@ -198,12 +238,14 @@ const FakeUsersTable: React.FC = () => {
                         >
                           Edit Profile
                         </button>
+
                         <button
                           onClick={() => navigate(`/create-service/${user._id}`)}
                           className="bg-blue-500 hover:bg-blue-700 text-white px-3 py-1 rounded-lg text-sm"
                         >
                           Create Service
                         </button>
+
                         <button
                           onClick={() => handleDelete(user._id)}
                           className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-lg text-sm"
@@ -217,8 +259,8 @@ const FakeUsersTable: React.FC = () => {
               </tbody>
             </table>
 
-            {/* Pagination Controls */}
-            <div className="flex flex-col md:flex-row justify-between items-center gap-3 p-4 border-t bg-gray-50">
+            {/* Pagination */}
+            <div className="flex flex-col md:flex-row justify-between items-center p-4 bg-gray-50 border-t">
               <div className="flex items-center gap-2 text-sm">
                 <label>Rows per page:</label>
                 <select
@@ -241,16 +283,18 @@ const FakeUsersTable: React.FC = () => {
                   variant="outline"
                   disabled={currentPage === 1}
                   onClick={() => setCurrentPage((p) => p - 1)}
-                  className="text-black border-blue-800 hover:bg-blue-500 text-sm"
                 >
                   Prev
                 </Button>
-                <span className="text-sm">Page {currentPage} of {totalPages}</span>
+
+                <span className="text-sm">
+                  Page {currentPage} of {totalPages}
+                </span>
+
                 <Button
                   variant="outline"
                   disabled={currentPage === totalPages}
                   onClick={() => setCurrentPage((p) => p + 1)}
-                  className="text-black border-blue-800 hover:bg-blue-500 text-sm"
                 >
                   Next
                 </Button>
