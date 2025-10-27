@@ -26,7 +26,14 @@ const FakeUsersTable: React.FC = () => {
   const [count, setCount] = useState<number>(10);
   const [result, setResult] = useState<{ createdCount: number } | null>(null);
 
-  const countries = ["India", "Germany", "France", "Italy", "Spain", "Portugal"];
+  const countries = [
+    "India",
+    "Germany",
+    "France",
+    "Italy",
+    "Spain",
+    "Portugal",
+  ];
 
   // CSV Upload
   const [csvFile, setCsvFile] = useState<File | null>(null);
@@ -100,28 +107,28 @@ const FakeUsersTable: React.FC = () => {
   };
 
   const handleDelete = async (userId: string) => {
-  const result = await Swal.fire({
-    title: "Are you sure?",
-    text: "This action cannot be undone!",
-    icon: "warning",
-    showCancelButton: true,
-    confirmButtonText: "Yes, delete it!",
-    cancelButtonText: "Cancel",
-  });
+    const result = await Swal.fire({
+      title: "Are you sure?",
+      text: "This action cannot be undone!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Yes, delete it!",
+      cancelButtonText: "Cancel",
+    });
 
-  if (!result.isConfirmed) return;
+    if (!result.isConfirmed) return;
 
-  setLoading(true);
-  try {
-    await axios.delete(`/fake-users/${userId}`);
-    setFakeUsers(fakeUsers.filter((user) => user._id !== userId));
-    toast.success("User deleted successfully ✅");
-  } catch (err: any) {
-    toast.error(err.response?.data?.error || err.message);
-  } finally {
-    setLoading(false);
-  }
-};
+    setLoading(true);
+    try {
+      await axios.delete(`/fake-users/${userId}`);
+      setFakeUsers(fakeUsers.filter((user) => user._id !== userId));
+      toast.success("User deleted successfully ✅");
+    } catch (err: any) {
+      toast.error(err.response?.data?.error || err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const currentRecords = fakeUsers.slice(
     (currentPage - 1) * recordsPerPage,
@@ -131,7 +138,11 @@ const FakeUsersTable: React.FC = () => {
 
   return (
     <div className="p-6 max-w-6xl mx-auto space-y-8 relative">
-      <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} />
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+      />
 
       {loading && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
@@ -141,7 +152,9 @@ const FakeUsersTable: React.FC = () => {
 
       {/* ✅ Upload CSV Card */}
       <div className="bg-white shadow-lg rounded-2xl p-8 border border-gray-200">
-        <h2 className="text-3xl font-bold text-gray-800 mb-6 text-center">📂 Upload CSV to Create Users</h2>
+        <h2 className="text-3xl font-bold text-gray-800 mb-6 text-center">
+          📂 Upload CSV to Create Users
+        </h2>
 
         <input
           type="file"
@@ -154,61 +167,19 @@ const FakeUsersTable: React.FC = () => {
           onClick={handleCSVUpload}
           disabled={!csvFile || loading}
           className={`mt-6 w-full py-3 rounded-xl text-white font-semibold ${
-            loading ? "bg-gray-400" : "bg-green-600 hover:bg-green-700 shadow-md hover:shadow-lg"
+            loading
+              ? "bg-gray-400"
+              : "bg-green-600 hover:bg-green-700 shadow-md hover:shadow-lg"
           }`}
         >
           {loading ? "Uploading..." : "Upload CSV & Create Users"}
         </button>
       </div>
 
-      {/* Generate Fake Users Card */}
-      <div className="bg-white shadow-lg rounded-2xl p-8 border border-gray-200">
-        <h2 className="text-3xl font-bold text-gray-800 mb-6 text-center">🎭 Generate Fake Users</h2>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <label className="block text-gray-700 font-medium mb-1">Select Country</label>
-            <select
-              value={country}
-              onChange={(e) => setCountry(e.target.value)}
-              className="w-full border border-gray-300 rounded-lg px-4 py-2"
-            >
-              {countries.map((c) => (
-                <option key={c} value={c}>{c}</option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-gray-700 font-medium mb-1">Number of Users</label>
-            <input
-              type="number"
-              min={1}
-              max={500}
-              value={count}
-              onChange={(e) => setCount(Number(e.target.value))}
-              className="w-full border border-gray-300 rounded-lg px-4 py-2"
-            />
-          </div>
-        </div>
-
-        <button
-          onClick={handleGenerate}
-          disabled={loading}
-          className="mt-6 w-full py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700"
-        >
-          {loading ? "Processing..." : `Generate ${count} Fake Users`}
-        </button>
-
-        {result && (
-          <p className="mt-4 text-center text-gray-600 font-medium">
-            ✅ Created {result.createdCount} fake users for {country}.
-          </p>
-        )}
-      </div>
-
       {/* Fake Users Table */}
-      <h2 className="text-3xl font-bold text-gray-800 mb-6 text-center">📋 Fake Users List</h2>
+      <h2 className="text-3xl font-bold text-gray-800 mb-6 text-center">
+        📋 Fake Users List
+      </h2>
 
       {fakeUsers.length === 0 && !loading && (
         <p className="text-center text-gray-600">No fake users found.</p>
@@ -231,7 +202,10 @@ const FakeUsersTable: React.FC = () => {
               </thead>
               <tbody>
                 {currentRecords.map((user, i) => (
-                  <tr key={user._id} className={i % 2 === 0 ? "bg-white" : "bg-gray-50"}>
+                  <tr
+                    key={user._id}
+                    className={i % 2 === 0 ? "bg-white" : "bg-gray-50"}
+                  >
                     <td className="p-3 border text-blue-600 hover:underline cursor-pointer">
                       <Link to={`/users/${user._id}`}>{user.name}</Link>
                     </td>
@@ -239,23 +213,11 @@ const FakeUsersTable: React.FC = () => {
                     <td className="p-3 border">{user.mobile}</td>
                     <td className="p-3 border">{user.city}</td>
                     <td className="p-3 border">{user.age}</td>
-                    <td className="p-3 border">{new Date(user.created_at).toLocaleString()}</td>
+                    <td className="p-3 border">
+                      {new Date(user.created_at).toLocaleString()}
+                    </td>
                     <td className="p-3 border">
                       <div className="flex flex-wrap gap-2">
-                        <button
-                          onClick={() => handleEdit(user._id)}
-                          className="bg-blue-500 hover:bg-blue-700 text-white px-3 py-1 rounded-lg text-sm"
-                        >
-                          Edit Profile
-                        </button>
-
-                        <button
-                          onClick={() => navigate(`/create-service/${user._id}`)}
-                          className="bg-blue-500 hover:bg-blue-700 text-white px-3 py-1 rounded-lg text-sm"
-                        >
-                          Create Service
-                        </button>
-
                         <button
                           onClick={() => handleDelete(user._id)}
                           className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-lg text-sm"
