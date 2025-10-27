@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import "react-toastify/dist/ReactToastify.css";
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
-
+import Swal from "sweetalert2"
 // ---------------- Types ----------------
 interface Category {
   _id: string;
@@ -157,18 +157,27 @@ const CategoryPage: React.FC = () => {
 
   // -------- Delete --------
   const handleDelete = async (id: string) => {
-    if (!window.confirm("Are you sure you want to delete this category?"))
-      return;
-    try {
-      const res = await axios.delete(`/category/delete/${id}`);
-      if (res.data?.isSuccess) {
-        toast.success("Category deleted successfully");
-        fetchCategories(currentPage, recordsPerPage);
-      }
-    } catch {
-      toast.error("Failed to delete category");
+  const result = await Swal.fire({
+    title: "Are you sure?",
+    text: "This category will be deleted permanently!",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonText: "Yes, delete!",
+    cancelButtonText: "Cancel",
+  });
+
+  if (!result.isConfirmed) return;
+
+  try {
+    const res = await axios.delete(`/category/delete/${id}`);
+    if (res.data?.isSuccess) {
+      toast.success("Category deleted successfully ✅");
+      fetchCategories(currentPage, recordsPerPage);
     }
-  };
+  } catch {
+    toast.error("Failed to delete category ❌");
+  }
+};
 
   // -------- Reset form --------
   const resetForm = () => {
