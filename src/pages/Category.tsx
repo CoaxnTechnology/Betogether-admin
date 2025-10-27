@@ -40,6 +40,7 @@ const CategoryPage: React.FC = () => {
     try {
       setIsCategoryLoading(true);
       const res = await axios.post("/category/all", { page, limit });
+      console.log("Fetch Categories Response:", res.data);
       if (res.data?.isSuccess) {
         const formattedCategories: Category[] = res.data.data.map(
           (cat: Category) => ({
@@ -204,10 +205,12 @@ const CategoryPage: React.FC = () => {
   const exportToExcel = async () => {
     try {
       setIsLoading(true);
+
       const res = await axios.post("/category/all", {
         page: 1,
         limit: 1000000000,
       });
+
       let categories = res.data?.data || [];
 
       if (categories.length === 0) {
@@ -215,26 +218,38 @@ const CategoryPage: React.FC = () => {
         return;
       }
 
-      categories = categories.map((cat: any) => ({
-        name: cat.name,
-        image: cat.image,
-        tags: Array.isArray(cat.tags) ? cat.tags.join(", ") : "", // ✅ convert array → string
-        created_at: cat.created_at
+      // ✅ Format data for Excel download
+      categories = categories.map((cat: any, index: number) => ({
+        Category_ID: cat._id || "-",
+        Name: cat.name || "-",
+        Image: cat.image || "-",
+        Tags: Array.isArray(cat.tags) ? cat.tags.join(", ") : "-", // ✅ FIX
+        Created_At: cat.created_at
           ? new Date(cat.created_at).toLocaleDateString()
           : "-",
       }));
 
       const worksheet = XLSX.utils.json_to_sheet(categories);
+
+      // ✅ Force proper header row at top
+      XLSX.utils.sheet_add_aoa(
+        worksheet,
+        [["S_No", "Name", "Image", "Tags", "Created_At"]],
+        { origin: "A1" }
+      );
+
       const workbook = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(workbook, worksheet, "Categories");
 
-      const csvBuffer = XLSX.write(workbook, {
-        bookType: "csv",
+      // ✅ Export as Excel file (.xlsx)
+      const buffer = XLSX.write(workbook, {
+        bookType: "xlsx",
         type: "array",
       });
+
       saveAs(
-        new Blob([csvBuffer], { type: "text/csv;charset=utf-8" }),
-        "categories_export.csv"
+        new Blob([buffer], { type: "application/octet-stream" }),
+        "categories_export.xlsx"
       );
 
       toast.success("Category data exported successfully!");
