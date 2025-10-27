@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { useNavigate, Link } from "react-router-dom";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-
+import Swal from "sweetalert2";
 interface FakeUser {
   _id: string;
   name: string;
@@ -100,18 +100,28 @@ const FakeUsersTable: React.FC = () => {
   };
 
   const handleDelete = async (userId: string) => {
-    if (!confirm("Are you sure you want to delete this user?")) return;
-    setLoading(true);
-    try {
-      await axios.delete(`/fake-users/${userId}`);
-      setFakeUsers(fakeUsers.filter((user) => user._id !== userId));
-      toast.success("User deleted successfully");
-    } catch (err: any) {
-      toast.error(err.response?.data?.error || err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const result = await Swal.fire({
+    title: "Are you sure?",
+    text: "This action cannot be undone!",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonText: "Yes, delete it!",
+    cancelButtonText: "Cancel",
+  });
+
+  if (!result.isConfirmed) return;
+
+  setLoading(true);
+  try {
+    await axios.delete(`/fake-users/${userId}`);
+    setFakeUsers(fakeUsers.filter((user) => user._id !== userId));
+    toast.success("User deleted successfully ✅");
+  } catch (err: any) {
+    toast.error(err.response?.data?.error || err.message);
+  } finally {
+    setLoading(false);
+  }
+};
 
   const currentRecords = fakeUsers.slice(
     (currentPage - 1) * recordsPerPage,
