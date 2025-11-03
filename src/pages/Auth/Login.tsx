@@ -110,7 +110,7 @@ const Login: React.FC = () => {
             </a>
           </div>
 
-          <div className="flex justify-center mb-2">
+          {/* <div className="flex justify-center mb-2">
             <button
               type="button"
               onClick={fillDemoCredentials}
@@ -118,7 +118,7 @@ const Login: React.FC = () => {
             >
               <Copy className="w-4 h-4" /> Fill Demo Credentials
             </button>
-          </div>
+          </div> */}
 
           <button
             type="submit"
