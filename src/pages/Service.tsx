@@ -53,12 +53,18 @@ const Service: React.FC = () => {
 
   if (!services || services.length === 0)
     return (
-      <p className="text-center mt-20 text-red-500 text-lg">No services found.</p>
+      <p className="text-center mt-20 text-red-500 text-lg">
+        No services found.
+      </p>
     );
 
   return (
     <div className="max-w-6xl mx-auto mt-8 px-3 sm:px-6 pb-10 relative">
-      <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} />
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+      />
       {/* Page Header */}
       <h2 className="text-2xl font-bold mb-6 text-center text-blue-700">
         All Services
@@ -147,6 +153,9 @@ const Service: React.FC = () => {
                 <option value={5}>5</option>
                 <option value={10}>10</option>
                 <option value={15}>15</option>
+                <option value={20}>20</option>
+                <option value={25}>25</option>
+                <option value={30}>30</option>
               </select>
             </div>
 
