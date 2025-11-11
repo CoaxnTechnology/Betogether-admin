@@ -255,18 +255,18 @@ const FakeUsersTable: React.FC = () => {
                   variant="outline"
                   disabled={currentPage === 1}
                   onClick={() => setCurrentPage((p) => p - 1)}
+                  className="text-black-700 border-blue-800 hover:bg-blue-500 text-sm"
                 >
                   Prev
                 </Button>
-
                 <span className="text-sm">
                   Page {currentPage} of {totalPages}
                 </span>
-
                 <Button
                   variant="outline"
                   disabled={currentPage === totalPages}
                   onClick={() => setCurrentPage((p) => p + 1)}
+                  className="text-black-700 border-blue-800 hover:bg-blue-500 text-sm"
                 >
                   Next
                 </Button>
