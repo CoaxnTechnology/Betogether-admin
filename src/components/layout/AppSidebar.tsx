@@ -1,7 +1,14 @@
 import { useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import { ChevronDown, ChevronRight } from "lucide-react";
-import { LayoutDashboard, Users, Layers, Briefcase, UserX } from "lucide-react";
+import {
+  LayoutDashboard,
+  Users,
+  Layers,
+  Briefcase,
+  UserX,
+  CreditCard,
+} from "lucide-react";
 
 import {
   Sidebar,
@@ -33,6 +40,7 @@ const navigationItems: NavItem[] = [
   { title: "Category", url: "/category", icon: Layers },
   { title: "Service", url: "/service", icon: Briefcase },
   { title: "Fake-User", url: "/FakeUser", icon: UserX },
+  { title: "Payment", url: "/Payment", icon: CreditCard },
 ];
 
 export function AppSidebar() {
@@ -58,7 +66,7 @@ export function AppSidebar() {
       "group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-smooth relative",
       isActive
         ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-md"
-        : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+        : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground hover:border-blue-500"
     );
 
   const getSubmenuCls = ({ isActive }: { isActive: boolean }) =>
