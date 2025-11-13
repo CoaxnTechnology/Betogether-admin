@@ -10,13 +10,19 @@ const PaymentSettings = () => {
   const [cancellationEnabled, setCancellationEnabled] = useState(false);
   const [cancellationPercentage, setCancellationPercentage] = useState("");
   const [savedCancellation, setSavedCancellation] = useState("");
+  const [loading, setLoading] = useState(true); // ✅ loader state
 
   const fetchSettings = async () => {
     try {
-      const commissionRes = await axios.get(
-        "https://be-together-node.vercel.app/api/admin/commission"
-      );
+      console.log("Fetching settings...");
+      setLoading(true);
 
+      const [commissionRes, cancelRes] = await Promise.all([
+        axios.get("https://be-together-node.vercel.app/api/admin/commission"),
+        axios.get("https://be-together-node.vercel.app/api/admin/cancellation"),
+      ]);
+
+      // ---- COMMISSION ----
       const commissionValue =
         commissionRes.data?.percentage === 0 ||
         commissionRes.data?.percentage === undefined
@@ -26,10 +32,7 @@ const PaymentSettings = () => {
       setCommission(commissionValue);
       setSavedCommission(commissionValue);
 
-      const cancelRes = await axios.get(
-        "https://be-together-node.vercel.app/api/admin/cancellation"
-      );
-
+      // ---- CANCELLATION ----
       setCancellationEnabled(cancelRes.data?.enabled || false);
 
       const cancelValue =
@@ -40,9 +43,13 @@ const PaymentSettings = () => {
 
       setCancellationPercentage(cancelValue);
       setSavedCancellation(cancelValue);
+
+      console.log("Settings fetched successfully ✅");
     } catch (error) {
-      console.log("Error fetching settings", error);
+      console.log("Error fetching settings ❌", error);
       toast.error("Failed to load settings ❌");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -52,6 +59,7 @@ const PaymentSettings = () => {
 
   const handleCommissionSave = async () => {
     try {
+      console.log("Updating commission...");
       await axios.put(
         "https://be-together-node.vercel.app/api/admin/commission",
         {
@@ -61,12 +69,14 @@ const PaymentSettings = () => {
       fetchSettings();
       toast.success("Commission updated ✅");
     } catch (err) {
+      console.log("Error updating commission ❌", err);
       toast.error("Error updating commission ❌");
     }
   };
 
   const handleCancellationSave = async () => {
     try {
+      console.log("Updating cancellation setting...");
       await axios.put(
         "https://be-together-node.vercel.app/api/admin/cancellation",
         {
@@ -79,13 +89,22 @@ const PaymentSettings = () => {
       fetchSettings();
       toast.success("Cancellation setting updated ✅");
     } catch (err) {
+      console.log("Error updating cancellation setting ❌", err);
       toast.error("Error updating cancellation setting ❌");
     }
   };
 
+  // ✅ SAME LOADER STYLE AS SERVICE PAGE
+  if (loading)
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+
   return (
     <div className="max-w-2xl mx-auto p-6 space-y-6 animate-fadeIn relative">
-      {/* ✅ Toast setup same as User page */}
+      {/* Toast setup */}
       <ToastContainer
         position="top-right"
         autoClose={3000}
@@ -96,9 +115,9 @@ const PaymentSettings = () => {
         draggable
         theme="light"
         style={{
-          fontSize: "18px", // slightly bigger
-          top: "1rem", // from top
-          right: "1rem", // from right
+          fontSize: "18px",
+          top: "1rem",
+          right: "1rem",
         }}
       />
 
@@ -162,7 +181,7 @@ const PaymentSettings = () => {
         </button>
       </div>
 
-      {/* SHOW SAVED DATA IN TABLE */}
+      {/* SHOW SAVED DATA */}
       <div className="bg-white shadow-xl rounded-2xl p-5 border">
         <h3 className="text-lg font-semibold mb-3">Current Saved Settings</h3>
         <table className="w-full text-left border-collapse">

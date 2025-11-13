@@ -83,30 +83,46 @@ const CategoryPage: React.FC = () => {
   };
 
   // -------- Manual AI Tag Generation --------
-  const handleGenerateAITags = async () => {
-    if (!name.trim()) return toast.error("Enter category name first");
+  // -------- Manual AI Tag Generation --------
+const handleGenerateAITags = async () => {
+  if (!name.trim()) return toast.error("Enter category name first");
 
-    try {
-      setIsGeneratingTags(true);
-      const res = await axios.post("/category/ai-tags", { text: name });
-      if (res.data?.isSuccess && Array.isArray(res.data.tags)) {
-        setTags((prev) => [
-          ...prev.filter((t) => !autoTags.includes(t)),
-          ...res.data.tags,
-        ]);
-        setAutoTags(res.data.tags);
-        toast.success("AI tags generated");
-      } else {
+  try {
+    setIsGeneratingTags(true);
+    console.log("🧠 Generating AI tags for:", name);
+
+    const res = await axios.post("/category/ai-tags", { text: name });
+    console.log("AI Response:", res.data);
+
+    if (res.data?.isSuccess && Array.isArray(res.data.tags)) {
+      const generatedTags = res.data.tags
+        .map((t: string) => t.trim())
+        .filter((t: string) => t.length > 0); // remove empty tags
+
+      if (generatedTags.length === 0) {
+        toast.warn("⚠️ No tags generated. Try another name.");
         setAutoTags([]);
-        toast.error("No AI tags generated");
+        return;
       }
-    } catch (err) {
-      console.error("AI Tag Generation Failed:", err);
-      toast.error("Failed to generate AI tags");
-    } finally {
-      setIsGeneratingTags(false);
+
+      const uniqueTags = Array.from(new Set([...tags, ...generatedTags]));
+      setTags(uniqueTags);
+      setAutoTags(generatedTags);
+
+      console.log("✅ Generated Tags:", generatedTags);
+      toast.success("AI tags generated successfully!");
+    } else {
+      toast.warn("⚠️ No tags generated from AI.");
+      setAutoTags([]);
     }
-  };
+  } catch (err) {
+    console.error("AI Tag Generation Failed:", err);
+    toast.error("Failed to generate AI tags");
+  } finally {
+    setIsGeneratingTags(false);
+  }
+};
+
 
   // -------- Image preview --------
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
