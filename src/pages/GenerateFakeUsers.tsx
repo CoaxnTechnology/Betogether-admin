@@ -105,6 +105,31 @@ const FakeUsersTable: React.FC = () => {
       setLoading(false);
     }
   };
+const handleDeleteAll = async () => {
+  const confirm = await Swal.fire({
+    title: "Are you sure?",
+    text: "This will delete ALL fake users, their services, and reviews!",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonText: "Yes, delete all!",
+    cancelButtonText: "Cancel",
+  });
+
+  if (!confirm.isConfirmed) return;
+
+  setLoading(true);
+
+  try {
+    await axios.delete("/fake-users"); // your API endpoint
+
+    toast.success("All fake users deleted successfully ✅");
+    fetchFakeUsers(); // refresh list
+  } catch (err: any) {
+    toast.error(err.response?.data?.message || "Failed to delete all");
+  } finally {
+    setLoading(false);
+  }
+};
 
   const handleDelete = async (userId: string) => {
     const result = await Swal.fire({
@@ -177,6 +202,14 @@ const FakeUsersTable: React.FC = () => {
       </div>
 
       {/* Fake Users Table */}
+      <div className="flex justify-end mb-4">
+        <button
+          onClick={handleDeleteAll}
+          className="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-lg shadow-md"
+        >
+          Delete All Fake Users
+        </button>
+      </div>
       <h2 className="text-3xl font-bold text-gray-800 mb-6 text-center">
         📋 Fake Users List
       </h2>
