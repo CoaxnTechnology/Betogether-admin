@@ -41,6 +41,7 @@ const navigationItems: NavItem[] = [
   { title: "Service", url: "/service", icon: Briefcase },
   { title: "Fake-User", url: "/FakeUser", icon: UserX },
   { title: "Payment", url: "/Payment", icon: CreditCard },
+   { title: "Booking", url: "/booking", icon: CreditCard },
 ];
 
 export function AppSidebar() {

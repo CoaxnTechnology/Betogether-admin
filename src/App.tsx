@@ -17,6 +17,7 @@ import GenerateFakeUsers from "./pages/GenerateFakeUsers";
 import EditProfile from "./pages/Editprofile";
 import CreateService from "./pages/CreateService";
 import Payment from "./pages/Payment";
+import AllBookings from "./pages/Booking";
 const queryClient = new QueryClient();
 
 function App() {
@@ -125,6 +126,16 @@ function App() {
                 <ProtectedRoute>
                   <Layout>
                     <Payment />
+                  </Layout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/booking"
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <AllBookings />
                   </Layout>
                 </ProtectedRoute>
               }

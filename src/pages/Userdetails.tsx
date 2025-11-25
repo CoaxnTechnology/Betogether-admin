@@ -18,7 +18,7 @@ const Userdetails: React.FC = () => {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const res = await axios.get(`/${id}`);
+        const res = await axios.get(`/user/${id}`);
         if (res.data.success) {
           const d = res.data.data;
 

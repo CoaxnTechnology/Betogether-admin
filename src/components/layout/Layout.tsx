@@ -1,11 +1,13 @@
 import React from "react";
 import AppSidebar from "./AppSidebar";
-import {Header} from "./Header";
+import { Header } from "./Header";
 import { SidebarProvider } from "../ui/sidebar"; // ✅ Import SidebarProvider
 
 const Layout = ({ children }: { children: React.ReactNode }) => {
   return (
-    <SidebarProvider>  {/* ✅ Wrap everything inside */}
+    <SidebarProvider>
+      {" "}
+      {/* ✅ Wrap everything inside */}
       <div className="min-h-screen flex w-full bg-background">
         {/* Sidebar */}
         <AppSidebar />
@@ -19,6 +21,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
           <main className="flex-1 p-4 bg-gray-50 overflow-y-auto">
             {children}
           </main>
+          
         </div>
       </div>
     </SidebarProvider>
