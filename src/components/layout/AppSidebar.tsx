@@ -8,6 +8,7 @@ import {
   Briefcase,
   UserX,
   CreditCard,
+  CalendarCheck ,
 } from "lucide-react";
 
 import {
@@ -21,6 +22,7 @@ import {
   SidebarMenuItem,
   SidebarHeader,
   useSidebar,
+  
 } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
 
@@ -41,7 +43,7 @@ const navigationItems: NavItem[] = [
   { title: "Service", url: "/service", icon: Briefcase },
   { title: "Fake-User", url: "/FakeUser", icon: UserX },
   { title: "Payment", url: "/Payment", icon: CreditCard },
-   { title: "Booking", url: "/booking", icon: CreditCard },
+   { title: "Booking", url: "/booking", icon: CalendarCheck },
 ];
 
 export function AppSidebar() {
