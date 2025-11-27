@@ -27,16 +27,20 @@ export function StatsGrid() {
           {
             title: "Total Users",
             value:
-              data.summaryWidgets.find((w: any) => w.title === "Total Users")?.value || "8,542"
-                ?.value || 0,
+              data.summaryWidgets.find((w: any) => w.title === "Total Users")
+                ?.value ||
+              "8,542"?.value ||
+              0,
             icon: "users",
             color: "primary",
           },
           {
             title: "Total Services",
             value:
-              data.summaryWidgets.find((w: any) => w.title === "Total Services")?.value || "126"
-                ?.value || 0,
+              data.summaryWidgets.find((w: any) => w.title === "Total Services")
+                ?.value ||
+              "126"?.value ||
+              0,
             icon: "Briefcase",
             color: "success",
           },
@@ -121,10 +125,29 @@ export function StatsGrid() {
             { name: "Upcoming", value: 0, color: "hsl(45 90% 55%)" },
           ],
           bookings: [
-            { name: "Completed", value: 10, color: "hsl(168 100% 50%)" },
-            { name: "Pending", value: 0, color: "hsl(210 100% 56%)" },
-            { name: "Cancelled", value: 0, color: "hsl(0 70% 55%)" },
+            {
+              name: "Completed",
+              value:
+                data.chartData.bookings?.find((b) => b.name === "Completed")
+                  ?.value || 0,
+              color: "hsl(168 100% 50%)",
+            },
+            {
+              name: "booked",
+              value:
+                data.chartData.bookings?.find((b) => b.name === "booked")
+                  ?.value || 0,
+              color: "hsl(210 100% 56%)",
+            },
+            {
+              name: "Cancelled",
+              value:
+                data.chartData.bookings?.find((b) => b.name === "Cancelled")
+                  ?.value || 0,
+              color: "hsl(0 70% 55%)",
+            },
           ],
+
           reviews: [
             {
               name: "Positive",
