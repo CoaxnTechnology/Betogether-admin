@@ -55,7 +55,10 @@ export function StatsGrid() {
           },
           {
             title: "Bookings This Month",
-            value: "1342", // static
+            value:
+              data.summaryWidgets.find(
+                (w: any) => w.title === "Bookings This Month"
+              )?.value || "0", // static
             icon: "calendar",
             color: "primary",
           },
@@ -125,23 +128,28 @@ export function StatsGrid() {
             { name: "Upcoming", value: 0, color: "hsl(45 90% 55%)" },
           ],
           bookings: [
-  {
-    name: "Completed",
-    value: data.chartData.bookings?.find((b) => b.name === "Completed")?.value || 0,
-    color: "hsl(168 100% 50%)",
-  },
-  {
-    name: "Pending", // frontend me Pending dikhana
-    value: data.chartData.bookings?.find((b) => b.name === "Pending")?.value || 0,
-    color: "hsl(210 100% 56%)",
-  },
-  {
-    name: "Cancelled",
-    value: data.chartData.bookings?.find((b) => b.name === "Cancelled")?.value || 0,
-    color: "hsl(0 70% 55%)",
-  },
-],
-
+            {
+              name: "Completed",
+              value:
+                data.chartData.bookings?.find((b) => b.name === "Completed")
+                  ?.value || 0,
+              color: "hsl(168 100% 50%)",
+            },
+            {
+              name: "Pending", // frontend me Pending dikhana
+              value:
+                data.chartData.bookings?.find((b) => b.name === "Pending")
+                  ?.value || 0,
+              color: "hsl(210 100% 56%)",
+            },
+            {
+              name: "Cancelled",
+              value:
+                data.chartData.bookings?.find((b) => b.name === "Cancelled")
+                  ?.value || 0,
+              color: "hsl(0 70% 55%)",
+            },
+          ],
 
           reviews: [
             {
