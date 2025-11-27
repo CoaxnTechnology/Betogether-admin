@@ -132,7 +132,7 @@ export function StatsGrid() {
   },
   {
     name: "Pending", // frontend me Pending dikhana
-    value: data.chartData.bookings?.find((b) => b.name === "booked")?.value || 0,
+    value: data.chartData.bookings?.find((b) => b.name === "Pending")?.value || 0,
     color: "hsl(210 100% 56%)",
   },
   {
@@ -140,7 +140,7 @@ export function StatsGrid() {
     value: data.chartData.bookings?.find((b) => b.name === "Cancelled")?.value || 0,
     color: "hsl(0 70% 55%)",
   },
-]
+],
 
 
           reviews: [
