@@ -66,7 +66,7 @@ const PaymentSettings = () => {
       setPaymentLoading(true);
 
       const res = await axios.get(
-        `http://be-together-node.vercel.app/api/admin/payment?page=${pageNumber}&limit=${limit}`
+        `https://be-together-node.vercel.app/api/admin/payment?page=${pageNumber}&limit=${limit}`
       );
 
       setPayments(res.data.data || []);
