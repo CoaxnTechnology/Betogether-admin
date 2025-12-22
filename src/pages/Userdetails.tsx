@@ -56,11 +56,25 @@ const Userdetails: React.FC = () => {
     fetchUser();
   }, [id]);
 
-  if (loading) return <p className="text-center mt-20 text-lg">Loading...</p>;
-  if (!user)
-    return (
-      <p className="text-center mt-20 text-red-500 text-lg">User not found.</p>
-    );
+ // 1️⃣ Loader
+if (loading) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
+      <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+    </div>
+  );
+}
+
+// 2️⃣ User not found
+if (!user) {
+  return (
+    <p className="text-center mt-20 text-red-500 text-lg">
+      User not found.
+    </p>
+  );
+}
+
+
 
   // Pagination Logic
   const totalPages = user?.services
@@ -76,6 +90,12 @@ const Userdetails: React.FC = () => {
 
   return (
     <div className="max-w-6xl mx-auto mt-8 px-3 sm:px-6 pb-10">
+      {/* ✅ Loader (same as FakeUsersTable) */}
+      {loading && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
+          <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+        </div>
+      )}
       {/* Back Button */}
       <div className="flex justify-start mb-4">
         <Button
