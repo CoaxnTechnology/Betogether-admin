@@ -4,6 +4,9 @@ import { useParams, useNavigate } from "react-router-dom";
 import Select from "react-select";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { ArrowLeft } from "lucide-react";
+import { Button } from "@/components/ui/button";
+
 interface User {
   _id: string;
   name: string;
@@ -213,7 +216,15 @@ const EditUser: React.FC = () => {
   const interestOptions = categories.map((tag) => ({ label: tag, value: tag }));
 
   return (
-    <div className="max-w-3xl mx-auto p-6 bg-white shadow rounded-lg space-y-6">
+    <div className="relative max-w-3xl mx-auto p-6 bg-white shadow rounded-lg space-y-6">
+      <div className="absolute -left-48 top-4 z-50">
+        <Button
+          onClick={() => navigate("/FakeUser")}
+          className="bg-blue-600 text-white hover:bg-blue-700 rounded-md shadow-md text-sm"
+        >
+          ← Back
+        </Button>
+      </div>
       {/* Toast container */}
       <ToastContainer
         position="top-right"

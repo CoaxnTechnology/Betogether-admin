@@ -15,9 +15,10 @@ import Service from "./pages/Service";
 import Category from "./pages/Category";
 import GenerateFakeUsers from "./pages/GenerateFakeUsers";
 import EditProfile from "./pages/Editprofile";
-import CreateService from "./pages/CreateService";
+import CreateService from "./pages/EditService";
 import Payment from "./pages/Payment";
 import AllBookings from "./pages/Booking";
+import EditService from "./pages/EditService";
 const queryClient = new QueryClient();
 
 function App() {
@@ -80,6 +81,17 @@ function App() {
                 </ProtectedRoute>
               }
             />
+            <Route
+              path="/edit-service/:serviceId"
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <EditService />
+                  </Layout>
+                </ProtectedRoute>
+              }
+            />
+
             <Route
               path="/category"
               element={

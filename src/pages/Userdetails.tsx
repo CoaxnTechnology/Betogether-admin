@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import axios from "../API/baseUrl";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Briefcase, Eye } from "lucide-react";
+import { Briefcase, Eye, Pencil } from "lucide-react";
 
 const Userdetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -19,6 +19,7 @@ const Userdetails: React.FC = () => {
     const fetchUser = async () => {
       try {
         const res = await axios.get(`/user/${id}`);
+        console.log("User fetch response:", res);
         if (res.data.success) {
           const d = res.data.data;
 
@@ -33,6 +34,7 @@ const Userdetails: React.FC = () => {
             languages: d.languages,
             interests: d.interests,
             created_at: d.created_at,
+            is_fake: d.is_fake,
             services: d.services?.map((s: any) => ({
               _id: s._id,
               title: s.title || "-",
@@ -227,12 +229,29 @@ const Userdetails: React.FC = () => {
                       </td>
                       <td className="p-2 border">{srv.city}</td>
                       <td className="p-2 border text-center">
-                        <Button
-                          className="bg-blue-600 hover:bg-blue-700 text-white p-3 rounded"
-                          onClick={() => navigate(`/service/${srv._id}`)}
-                        >
-                          <Eye className="w-4 h-4" />
-                        </Button>
+                        <div className="flex justify-center gap-2">
+                          {/* View Service */}
+                          <Button
+                            className="bg-blue-600 hover:bg-blue-700 text-white p-2 rounded"
+                            onClick={() => navigate(`/service/${srv._id}`)}
+                            title="View Service"
+                          >
+                            <Eye className="w-4 h-4" />
+                          </Button>
+
+                          {/* Edit Service */}
+                          {user.is_fake && (
+                            <Button
+                              className="bg-green-600 hover:bg-green-700 text-white p-2 rounded"
+                              onClick={() =>
+                                navigate(`/edit-service/${srv._id}`)
+                              }
+                              title="Edit Service"
+                            >
+                              <Pencil className="w-4 h-4" />
+                            </Button>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   ))}

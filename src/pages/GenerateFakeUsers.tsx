@@ -105,31 +105,31 @@ const FakeUsersTable: React.FC = () => {
       setLoading(false);
     }
   };
-const handleDeleteAll = async () => {
-  const confirm = await Swal.fire({
-    title: "Are you sure?",
-    text: "This will delete ALL fake users, their services, and reviews!",
-    icon: "warning",
-    showCancelButton: true,
-    confirmButtonText: "Yes, delete all!",
-    cancelButtonText: "Cancel",
-  });
+  const handleDeleteAll = async () => {
+    const confirm = await Swal.fire({
+      title: "Are you sure?",
+      text: "This will delete ALL fake users, their services, and reviews!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Yes, delete all!",
+      cancelButtonText: "Cancel",
+    });
 
-  if (!confirm.isConfirmed) return;
+    if (!confirm.isConfirmed) return;
 
-  setLoading(true);
+    setLoading(true);
 
-  try {
-    await axios.delete("/fake-users"); // your API endpoint
+    try {
+      await axios.delete("/fake-users"); // your API endpoint
 
-    toast.success("All fake users deleted successfully ✅");
-    fetchFakeUsers(); // refresh list
-  } catch (err: any) {
-    toast.error(err.response?.data?.message || "Failed to delete all");
-  } finally {
-    setLoading(false);
-  }
-};
+      toast.success("All fake users deleted successfully ✅");
+      fetchFakeUsers(); // refresh list
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || "Failed to delete all");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleDelete = async (userId: string) => {
     const result = await Swal.fire({
@@ -251,6 +251,12 @@ const handleDeleteAll = async () => {
                     </td>
                     <td className="p-3 border">
                       <div className="flex flex-wrap gap-2">
+                        <button
+                          onClick={() => handleEdit(user._id)}
+                          className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded-lg text-sm"
+                        >
+                          Edit
+                        </button>
                         <button
                           onClick={() => handleDelete(user._id)}
                           className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-lg text-sm"
