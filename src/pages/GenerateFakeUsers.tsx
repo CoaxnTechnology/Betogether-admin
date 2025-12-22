@@ -200,6 +200,19 @@ const FakeUsersTable: React.FC = () => {
           {loading ? "Uploading..." : "Upload CSV & Create Users"}
         </button>
       </div>
+      <button
+        onClick={() => {
+          const link = document.createElement("a");
+          link.href = "/sample/fake_users_sample.csv";
+          link.download = "fake_users_sample.csv";
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+        }}
+        className="mt-4 w-full py-3 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-700"
+      >
+        ⬇️ Download Sample CSV
+      </button>
 
       {/* Fake Users Table */}
       <div className="flex justify-end mb-4">
