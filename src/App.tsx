@@ -19,6 +19,7 @@ import CreateService from "./pages/EditService";
 import Payment from "./pages/Payment";
 import AllBookings from "./pages/Booking";
 import EditService from "./pages/EditService";
+import Request from "./pages/Request";
 const queryClient = new QueryClient();
 
 function App() {
@@ -148,6 +149,16 @@ function App() {
                 <ProtectedRoute>
                   <Layout>
                     <AllBookings />
+                  </Layout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/request"
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <Request/>
                   </Layout>
                 </ProtectedRoute>
               }

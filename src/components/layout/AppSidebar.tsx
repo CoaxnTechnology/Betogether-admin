@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
-import { ChevronDown, ChevronRight } from "lucide-react";
+import { ChevronDown, ChevronRight,Trash2  } from "lucide-react";
 import {
   LayoutDashboard,
   Users,
@@ -44,6 +44,7 @@ const navigationItems: NavItem[] = [
   { title: "Fake-User", url: "/FakeUser", icon: UserX },
   { title: "Payment", url: "/Payment", icon: CreditCard },
    { title: "Booking", url: "/booking", icon: CalendarCheck },
+   { title: "Request", url: "/request", icon: Trash2 },
 ];
 
 export function AppSidebar() {
