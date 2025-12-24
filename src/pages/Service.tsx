@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import axios from "../API/baseUrl";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Briefcase, Eye } from "lucide-react";
+import { Briefcase, Eye, Trash2 } from "lucide-react";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -124,14 +124,26 @@ const Service: React.FC = () => {
                       )}
                     </td>
                     <td className="p-2 border">{srv.owner?.name || "-"}</td>
-                    <td className="p-2 border text-center">
-                      <Button
-                        className="bg-blue-600 hover:bg-blue-700 text-white p-2 sm:p-3 rounded"
-                        onClick={() => navigate(`/service/${srv._id}`)}
-                      >
-                        <Eye className="w-4 h-4 sm:w-5 sm:h-5" />
-                      </Button>
-                    </td>
+                   <td className="p-2 border text-center">
+  <div className="flex justify-center gap-2">
+    {/* VIEW */}
+    <Button
+      className="bg-blue-600 hover:bg-blue-700 text-white p-2 rounded"
+      onClick={() => navigate(`/service/${srv._id}`)}
+    >
+      <Eye className="w-4 h-4" />
+    </Button>
+
+    {/* DELETE */}
+    <Button
+      className="bg-red-600 hover:bg-red-700 text-white p-2 rounded"
+      //onClick={() => handleDeleteService(srv._id)}
+    >
+      <Trash2 className="w-4 h-4" />
+    </Button>
+  </div>
+</td>
+
                   </tr>
                 ))}
               </tbody>
