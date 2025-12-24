@@ -11,6 +11,7 @@ const Service: React.FC = () => {
   const navigate = useNavigate();
   const [services, setServices] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   // Pagination States
   const [currentPage, setCurrentPage] = useState(1);
@@ -37,6 +38,38 @@ const Service: React.FC = () => {
 
     fetchServices();
   }, []);
+  const handleDeleteService = async (serviceId: string) => {
+    const confirm = window.confirm(
+      "⚠️ Are you sure?\nThis will permanently delete the service, bookings & payments."
+    );
+    if (!confirm) return;
+
+    try {
+      setDeletingId(serviceId);
+
+      const res = await axios.delete(
+        `/admin-force-delete/${serviceId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("adminToken")}`,
+          },
+        }
+      );
+
+      if (res.data.isSuccess) {
+        toast.success("Service deleted successfully ✅");
+
+        // Remove from UI
+        setServices((prev) => prev.filter((srv) => srv._id !== serviceId));
+      } else {
+        toast.error(res.data.message || "Delete failed");
+      }
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || "Failed to delete service");
+    } finally {
+      setDeletingId(null);
+    }
+  };
 
   // Pagination Logic
   const totalPages = Math.ceil(services.length / recordsPerPage);
@@ -124,26 +157,25 @@ const Service: React.FC = () => {
                       )}
                     </td>
                     <td className="p-2 border">{srv.owner?.name || "-"}</td>
-                   <td className="p-2 border text-center">
-  <div className="flex justify-center gap-2">
-    {/* VIEW */}
-    <Button
-      className="bg-blue-600 hover:bg-blue-700 text-white p-2 rounded"
-      onClick={() => navigate(`/service/${srv._id}`)}
-    >
-      <Eye className="w-4 h-4" />
-    </Button>
+                    <td className="p-2 border text-center">
+                      <div className="flex justify-center gap-2">
+                        {/* VIEW */}
+                        <Button
+                          className="bg-blue-600 hover:bg-blue-700 text-white p-2 rounded"
+                          onClick={() => navigate(`/service/${srv._id}`)}
+                        >
+                          <Eye className="w-4 h-4" />
+                        </Button>
 
-    {/* DELETE */}
-    <Button
-      className="bg-red-600 hover:bg-red-700 text-white p-2 rounded"
-      //onClick={() => handleDeleteService(srv._id)}
-    >
-      <Trash2 className="w-4 h-4" />
-    </Button>
-  </div>
-</td>
-
+                        {/* DELETE */}
+                        <Button
+                          className="bg-red-600 hover:bg-red-700 text-white p-2 rounded"
+                          onClick={() => handleDeleteService(srv._id)}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </td>
                   </tr>
                 ))}
               </tbody>
