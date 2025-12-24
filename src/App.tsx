@@ -20,6 +20,7 @@ import Payment from "./pages/Payment";
 import AllBookings from "./pages/Booking";
 import EditService from "./pages/EditService";
 import Request from "./pages/Request";
+import Profile from "./pages/Profile";
 const queryClient = new QueryClient();
 
 function App() {
@@ -159,6 +160,16 @@ function App() {
                 <ProtectedRoute>
                   <Layout>
                     <Request/>
+                  </Layout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/profile"
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <Profile/>
                   </Layout>
                 </ProtectedRoute>
               }

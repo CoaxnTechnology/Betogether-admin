@@ -6,7 +6,7 @@ interface ProtectedRouteProps {
 }
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
-  const token = localStorage.getItem("token");
+  const token = localStorage.getItem("adminToken");
 
   // Agar token nahi hai, to login page par redirect karo
   if (!token) return <Navigate to="/" />;

@@ -206,7 +206,7 @@ export const Header: FC = () => {
               align="end"
               className="w-56 bg-white text-black"
             >
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigate("/profile")}>
                 <UserCircle className="mr-2 h-4 w-4" />
                 Profile
               </DropdownMenuItem>
