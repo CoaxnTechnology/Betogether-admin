@@ -9,6 +9,7 @@ import {
   Phone,
   MessageSquare,
 } from "lucide-react";
+import { Toaster, toast } from "sonner";
 
 type DeleteRequest = {
   _id: string;
@@ -38,6 +39,7 @@ const Request: React.FC = () => {
 
   const token = localStorage.getItem("adminToken");
 
+  // ================= FETCH REQUESTS =================
   const fetchRequests = async () => {
     try {
       setLoading(true);
@@ -47,8 +49,8 @@ const Request: React.FC = () => {
         },
       });
       setRequests(res.data.data || []);
-    } catch (err) {
-      alert("Failed to load delete requests");
+    } catch {
+      toast.error("Failed to load delete requests");
     } finally {
       setLoading(false);
     }
@@ -58,42 +60,64 @@ const Request: React.FC = () => {
     fetchRequests();
   }, []);
 
-  const approveDelete = async (serviceId: string) => {
-    if (!window.confirm("Approve delete for this service?")) return;
-    try {
-      setActionLoading(serviceId);
-      await axios.post(
-        `${API_BASE}/approve-delete/${serviceId}`,
-        {},
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      fetchRequests();
-    } finally {
-      setActionLoading(null);
-    }
+  // ================= APPROVE DELETE =================
+  const approveDelete = (serviceId: string) => {
+    toast.warning("Approve delete request?", {
+      description: "This service will be permanently deleted",
+      action: {
+        label: "Approve",
+        onClick: async () => {
+          try {
+            setActionLoading(serviceId);
+            await axios.post(
+              `${API_BASE}/approve-delete/${serviceId}`,
+              {},
+              {
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                },
+              }
+            );
+            toast.success("Service deleted successfully");
+            fetchRequests();
+          } catch {
+            toast.error("Failed to approve delete");
+          } finally {
+            setActionLoading(null);
+          }
+        },
+      },
+    });
   };
 
-  const rejectDelete = async (serviceId: string) => {
-    if (!window.confirm("Reject delete request?")) return;
-    try {
-      setActionLoading(serviceId);
-      await axios.post(
-        `${API_BASE}/reject-delete/${serviceId}`,
-        {},
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      fetchRequests();
-    } finally {
-      setActionLoading(null);
-    }
+  // ================= REJECT DELETE =================
+  const rejectDelete = (serviceId: string) => {
+    toast.warning("Reject delete request?", {
+      description: "The service will remain active",
+      action: {
+        label: "Reject",
+        onClick: async () => {
+          try {
+            setActionLoading(serviceId);
+            await axios.post(
+              `${API_BASE}/reject-delete/${serviceId}`,
+              {},
+              {
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                },
+              }
+            );
+            toast.success("Delete request rejected");
+            fetchRequests();
+          } catch {
+            toast.error("Failed to reject request");
+          } finally {
+            setActionLoading(null);
+          }
+        },
+      },
+    });
   };
 
   // ================= LOADER =================
@@ -102,9 +126,7 @@ const Request: React.FC = () => {
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="flex flex-col items-center gap-3">
           <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
-          <p className="text-sm text-gray-500">
-            Loading delete requests...
-          </p>
+          <p className="text-sm text-gray-500">Loading delete requests...</p>
         </div>
       </div>
     );
@@ -112,6 +134,9 @@ const Request: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 p-4 md:p-8">
+      {/* 🔥 TOASTER INSIDE SAME FILE */}
+      <Toaster richColors position="top-right" />
+
       <div className="max-w-7xl mx-auto">
         <h1 className="text-2xl md:text-3xl font-bold mb-6 flex items-center gap-2">
           <Trash2 className="text-red-600" />
@@ -132,14 +157,10 @@ const Request: React.FC = () => {
                 {/* HEADER */}
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
                   <div>
-                    <h2 className="text-lg font-semibold">
-                      {req.title}
-                    </h2>
+                    <h2 className="text-lg font-semibold">{req.title}</h2>
                     <p className="text-xs text-gray-500">
                       Requested on{" "}
-                      {new Date(
-                        req.deleteRequestedAt
-                      ).toLocaleString()}
+                      {new Date(req.deleteRequestedAt).toLocaleString()}
                     </p>
                   </div>
 
@@ -182,9 +203,7 @@ const Request: React.FC = () => {
 
                   <div>
                     <p className="text-gray-500">Category</p>
-                    <p className="font-medium">
-                      {req.category?.name}
-                    </p>
+                    <p className="font-medium">{req.category?.name}</p>
                   </div>
 
                   <div>
@@ -217,8 +236,7 @@ const Request: React.FC = () => {
                     Delete Reason
                   </p>
                   <p className="text-gray-800">
-                    {req.deleteRequestReason ||
-                      "No reason provided"}
+                    {req.deleteRequestReason || "No reason provided"}
                   </p>
                 </div>
               </div>
