@@ -12,6 +12,7 @@ interface Category {
   name: string;
   image: string;
   tags: string[];
+  order?: number;
   created_at?: string;
 }
 
@@ -29,6 +30,7 @@ const CategoryPage: React.FC = () => {
   const [isGeneratingTags, setIsGeneratingTags] = useState(false);
   const [isCategoryLoading, setIsCategoryLoading] = useState(true);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
+  const [order, setOrder] = useState<number | "">("");
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
@@ -84,45 +86,44 @@ const CategoryPage: React.FC = () => {
 
   // -------- Manual AI Tag Generation --------
   // -------- Manual AI Tag Generation --------
-const handleGenerateAITags = async () => {
-  if (!name.trim()) return toast.error("Enter category name first");
+  const handleGenerateAITags = async () => {
+    if (!name.trim()) return toast.error("Enter category name first");
 
-  try {
-    setIsGeneratingTags(true);
-    console.log("🧠 Generating AI tags for:", name);
+    try {
+      setIsGeneratingTags(true);
+      console.log("🧠 Generating AI tags for:", name);
 
-    const res = await axios.post("/category/ai-tags", { text: name });
-    console.log("AI Response:", res.data);
+      const res = await axios.post("/category/ai-tags", { text: name });
+      console.log("AI Response:", res.data);
 
-    if (res.data?.isSuccess && Array.isArray(res.data.tags)) {
-      const generatedTags = res.data.tags
-        .map((t: string) => t.trim())
-        .filter((t: string) => t.length > 0); // remove empty tags
+      if (res.data?.isSuccess && Array.isArray(res.data.tags)) {
+        const generatedTags = res.data.tags
+          .map((t: string) => t.trim())
+          .filter((t: string) => t.length > 0); // remove empty tags
 
-      if (generatedTags.length === 0) {
-        toast.warn("⚠️ No tags generated. Try another name.");
+        if (generatedTags.length === 0) {
+          toast.warn("⚠️ No tags generated. Try another name.");
+          setAutoTags([]);
+          return;
+        }
+
+        const uniqueTags = Array.from(new Set([...tags, ...generatedTags]));
+        setTags(uniqueTags);
+        setAutoTags(generatedTags);
+
+        console.log("✅ Generated Tags:", generatedTags);
+        toast.success("AI tags generated successfully!");
+      } else {
+        toast.warn("⚠️ No tags generated from AI.");
         setAutoTags([]);
-        return;
       }
-
-      const uniqueTags = Array.from(new Set([...tags, ...generatedTags]));
-      setTags(uniqueTags);
-      setAutoTags(generatedTags);
-
-      console.log("✅ Generated Tags:", generatedTags);
-      toast.success("AI tags generated successfully!");
-    } else {
-      toast.warn("⚠️ No tags generated from AI.");
-      setAutoTags([]);
+    } catch (err) {
+      console.error("AI Tag Generation Failed:", err);
+      toast.error("Failed to generate AI tags");
+    } finally {
+      setIsGeneratingTags(false);
     }
-  } catch (err) {
-    console.error("AI Tag Generation Failed:", err);
-    toast.error("Failed to generate AI tags");
-  } finally {
-    setIsGeneratingTags(false);
-  }
-};
-
+  };
 
   // -------- Image preview --------
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -142,6 +143,10 @@ const handleGenerateAITags = async () => {
     const formData = new FormData();
     formData.append("name", name);
     formData.append("tags", JSON.stringify(tags));
+    // ✅ ORDER (OPTIONAL)
+    if (order !== "") {
+      formData.append("order", String(order));
+    }
     if (image) formData.append("image", image);
 
     try {
@@ -204,6 +209,7 @@ const handleGenerateAITags = async () => {
     setTags([]);
     setManualTag("");
     setAutoTags([]);
+    setOrder(""); // ✅ ADD
     setEditingCategory(null);
   };
 
@@ -212,6 +218,7 @@ const handleGenerateAITags = async () => {
     setEditingCategory(cat);
     setName(cat.name);
     setTags(cat.tags || []);
+    setOrder(cat.order ?? ""); // ✅ ADD
     setImage(null);
     setPreview(cat.image);
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -308,6 +315,16 @@ const handleGenerateAITags = async () => {
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Category name"
                 className="border rounded-lg px-4 py-2 w-full focus:ring-2 focus:ring-blue-300 text-sm md:text-base"
+              />
+              {/* Order Number */}
+              <input
+                type="number"
+                value={order}
+                onChange={(e) =>
+                  setOrder(e.target.value ? Number(e.target.value) : "")
+                }
+                placeholder="Order (optional)"
+                className="border rounded-lg px-4 py-2 w-full focus:ring-2 focus:ring-green-300 text-sm md:text-base"
               />
               <button
                 onClick={handleGenerateAITags}
@@ -423,6 +440,7 @@ const handleGenerateAITags = async () => {
               <table className="min-w-full text-xs md:text-sm border-collapse">
                 <thead className="bg-gray-100">
                   <tr>
+                    <th className="p-2 md:p-3 border text-center">Order</th>
                     <th className="p-2 md:p-3 border">Image</th>
                     <th className="p-2 md:p-3 border">Name</th>
                     <th className="p-2 md:p-3 border">Tags</th>
@@ -436,6 +454,10 @@ const handleGenerateAITags = async () => {
                   {categories.length > 0 ? (
                     categories.map((cat) => (
                       <tr key={cat._id} className="hover:bg-gray-50">
+                        <td className="p-2 md:p-3 border text-center font-medium">
+                          {cat.order ?? "-"}
+                        </td>
+
                         <td className="p-2 md:p-3 border">
                           <img
                             src={
