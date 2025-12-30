@@ -25,18 +25,28 @@ export const Header: FC = () => {
 
   const [deleteCount, setDeleteCount] = useState(0);
 
-  useEffect(() => {
-    const fetchCount = async () => {
-      try {
-        const res = await axios.get("http://be-together-node.vercel.app/api/admin/pending-delete-count");
-        setDeleteCount(res.data.count);
-      } catch (err) {
-        console.error(err);
-      }
-    };
+useEffect(() => {
+  const fetchCount = async () => {
+    try {
+      const token = localStorage.getItem("token");
 
-    fetchCount();
-  }, []);
+      const res = await axios.get(
+        "http://be-together-node.vercel.app/api/admin/pending-delete-count",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      setDeleteCount(res.data.count);
+    } catch (err) {
+      console.error("Delete count error:", err);
+    }
+  };
+
+  fetchCount();
+}, []);
 
   const handleLogout = () => {
     localStorage.removeItem("token");
