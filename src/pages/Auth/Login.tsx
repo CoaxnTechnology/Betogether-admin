@@ -92,7 +92,6 @@ const Login: React.FC = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4 relative">
-      <h1>hammad</h1>
       {loading && (
         <div className="absolute inset-0 bg-white/70 flex items-center justify-center z-50">
           <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
