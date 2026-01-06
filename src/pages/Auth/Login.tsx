@@ -6,7 +6,7 @@ import "react-toastify/dist/ReactToastify.css";
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: "https://be-together-node.vercel.app/api/admin",
+  baseURL: "https://uat.api.betogetherapp.com/api/admin",
   headers: {
     "Content-Type": "application/json",
   },
