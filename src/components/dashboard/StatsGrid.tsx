@@ -18,7 +18,7 @@ export function StatsGrid() {
       try {
         setLoading(true);
         const res = await axios.get(
-          "https://be-together-node.vercel.app/api/stats"
+          "https://uat.api.betogetherapp.com/api/stats"
         );
         const data = res.data;
 
@@ -29,7 +29,7 @@ export function StatsGrid() {
             value:
               data.summaryWidgets.find((w: any) => w.title === "Total Users")
                 ?.value ||
-              "8,542"?.value ||
+              "8,542"?.valueOf ||
               0,
             icon: "users",
             color: "primary",
@@ -39,7 +39,7 @@ export function StatsGrid() {
             value:
               data.summaryWidgets.find((w: any) => w.title === "Total Services")
                 ?.value ||
-              "126"?.value ||
+              "126"?.valueOf ||
               0,
             icon: "Briefcase",
             color: "success",

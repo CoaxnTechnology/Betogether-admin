@@ -3,14 +3,9 @@ import { Mail, Lock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import axios from "axios";
 
-const api = axios.create({
-  baseURL: "https://uat.api.betogetherapp.com/api/admin",
-  headers: {
-    "Content-Type": "application/json",
-  },
-});
+// ✅ USE CENTRAL API INSTANCE (SECURE)
+import api from "../../API/baseUrl";
 
 const Login: React.FC = () => {
   console.log("🟢 Login component mounted");
@@ -22,70 +17,40 @@ const Login: React.FC = () => {
   const navigate = useNavigate();
 
   const handleLogin = async (e: FormEvent) => {
-    console.log("➡️ handleLogin triggered");
     e.preventDefault();
 
-    console.log("📧 Email:", email);
-    console.log("🔐 Password length:", password.length);
-
     if (!email || !password) {
-      console.log("❌ Missing email or password");
       toast.error("Please fill in all fields");
       return;
     }
 
-    console.log("⏳ Setting loading = true");
     setLoading(true);
 
     try {
-      console.log("📡 Sending login request to /auth/login");
-
+      // ✅ BASE URL comes from utils/api.ts (env based)
       const res = await api.post("/auth/login", {
         email,
         password,
       });
 
-      console.log("✅ Login API response:", res.data);
-
-      if (!res.data.success) {
-        console.log("❌ Login failed response:", res.data);
-        toast.error(res.data.error || "Login failed");
+      if (!res.data?.success) {
+        toast.error(res.data?.error || "Login failed");
         return;
       }
 
-      console.log("🪙 Token received:", res.data.token);
-      console.log("👤 Admin data received:", res.data.admin);
-
-      // ✅ SAVE ADMIN TOKEN
-      console.log("💾 Saving adminToken to localStorage");
+      // ✅ SAVE TOKEN + ADMIN
       localStorage.setItem("adminToken", res.data.token);
-
-      console.log("💾 Saving admin info to localStorage");
       localStorage.setItem("admin", JSON.stringify(res.data.admin));
 
-      console.log(
-        "📦 localStorage adminToken:",
-        localStorage.getItem("adminToken")
-      );
-      console.log("📦 localStorage admin:", localStorage.getItem("admin"));
-
       toast.success("Login successful");
-
-      console.log("➡️ Navigating to /home");
       navigate("/home");
     } catch (err: any) {
-      console.log("🔥 Login API ERROR");
-      console.log("🔥 Full error:", err);
-
-      console.log("🔥 Error response data:", err.response?.data);
-
       toast.error(
         err.response?.data?.error ||
           err.response?.data?.message ||
           "Login failed"
       );
     } finally {
-      console.log("⏹ Setting loading = false");
       setLoading(false);
     }
   };
@@ -102,8 +67,12 @@ const Login: React.FC = () => {
 
       <div className="max-w-md w-full bg-white rounded-2xl shadow-lg p-8 space-y-6 relative z-10">
         <div className="text-center">
-          <h1 className="text-3xl font-bold text-gray-800">BeTogether Admin</h1>
-          <p className="text-gray-500 mt-2">Login to your admin account</p>
+          <h1 className="text-3xl font-bold text-gray-800">
+            BeTogether Admin
+          </h1>
+          <p className="text-gray-500 mt-2">
+            Login to your admin account
+          </p>
         </div>
 
         <form className="space-y-4" onSubmit={handleLogin}>
@@ -113,10 +82,7 @@ const Login: React.FC = () => {
               type="email"
               placeholder="Admin email"
               value={email}
-              onChange={(e) => {
-                console.log("✍️ Email input:", e.target.value);
-                setEmail(e.target.value);
-              }}
+              onChange={(e) => setEmail(e.target.value)}
               className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-300"
               required
             />
@@ -128,10 +94,7 @@ const Login: React.FC = () => {
               type="password"
               placeholder="Password"
               value={password}
-              onChange={(e) => {
-                console.log("✍️ Password input changed");
-                setPassword(e.target.value);
-              }}
+              onChange={(e) => setPassword(e.target.value)}
               className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-300"
               required
             />

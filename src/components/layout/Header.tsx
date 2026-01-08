@@ -27,7 +27,7 @@ export const Header: FC = () => {
         const token = localStorage.getItem("token");
 
         const res = await axios.get(
-          "https://be-together-node.vercel.app/api/admin/pending-delete-count",
+          "https://uat.api.betogetherapp.com/api/admin/pending-delete-count",
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("adminToken")}`,
@@ -46,10 +46,10 @@ export const Header: FC = () => {
     fetchDeleteCount();
 
     // 🔄 auto refresh every 10 seconds
-    const interval = setInterval(fetchDeleteCount, 10000);
+    //const interval = setInterval(fetchDeleteCount, 10000);
 
     // cleanup
-    return () => clearInterval(interval);
+    //return () => clearInterval(interval);
   }, []);
 
   const handleLogout = () => {

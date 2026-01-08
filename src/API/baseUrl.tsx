@@ -1,18 +1,23 @@
 // src/utils/api.ts
 import axios from "axios";
 
-// Base URL for API requests
-const BASE_URL = "https://be-together-node.vercel.app/api/admin";
+const BASE_URL = import.meta.env.VITE_API_BASE_URL;
+const ADMIN_PATH = import.meta.env.VITE_API_ADMIN_PATH;
+const TIMEOUT = Number(import.meta.env.VITE_API_TIMEOUT) || 15000;
 
-// Create axios instance
+if (!BASE_URL || !ADMIN_PATH) {
+  throw new Error("❌ API environment variables not set");
+}
+
 const api = axios.create({
-  baseURL: BASE_URL,
+  baseURL: `${BASE_URL}${ADMIN_PATH}`,
+  timeout: TIMEOUT,
   headers: {
     "Content-Type": "application/json",
   },
 });
 
-// ✅ IMPORTANT: Attach token before every request
+// Attach token before every request
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("adminToken");
@@ -23,9 +28,7 @@ api.interceptors.request.use(
 
     return config;
   },
-  (error) => {
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(error)
 );
 
 export default api;
