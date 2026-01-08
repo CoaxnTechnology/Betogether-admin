@@ -1,11 +1,13 @@
 #!/bin/bash
 
-echo "🚀 FRONTEND DEPLOY STARTED at $(date)"
+echo "🚀 FRONTEND UAT DEPLOY STARTED: $(date)"
 
 cd /var/www/frontend-uat-admin || exit 1
 
-echo "📦 Pulling latest code..."
-git pull origin testing
+echo "🧹 Resetting local changes..."
+git fetch origin
+git reset --hard origin/testing
+git clean -fd
 
 echo "📦 Installing dependencies..."
 npm install --silent
@@ -16,4 +18,4 @@ npm run build
 echo "🔁 Reloading nginx..."
 sudo systemctl reload nginx
 
-echo "✅ FRONTEND DEPLOY COMPLETED"
+echo "✅ FRONTEND UAT DEPLOY COMPLETED"
