@@ -79,7 +79,8 @@ export function StatsGrid() {
           },
           {
             title: "Total Revenue (This Month)",
-            value: data.summaryWidgets.find(
+            value:
+              data.summaryWidgets.find(
                 (w: any) => w.title === "Total Revenue (This Month)"
               )?.value || 0,
             icon: "dollar-sign",
