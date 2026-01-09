@@ -20,6 +20,7 @@ interface Service {
   owner?: { _id: string; name: string; email?: string };
   price: number;
   isFree: boolean;
+  image?: string;
   city: string | null;
   tags: string[];
   service_type: string;
@@ -43,6 +44,7 @@ const ServiceDetails: React.FC = () => {
     const fetchService = async () => {
       try {
         const res = await axios.get(`/service/${id}`);
+        console.log(res.data);
         if (res.data.success) {
           setService(res.data.data);
         }
@@ -106,6 +108,19 @@ const ServiceDetails: React.FC = () => {
 
   return (
     <div className="max-w-4xl mx-auto mt-10 px-4 pb-10">
+      {/* Service Image */}
+      <div className="flex justify-center mb-6">
+        <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-blue-600 shadow-lg">
+          <img
+            src={
+              service.image || "https://via.placeholder.com/150?text=No+Image"
+            }
+            alt={service.title}
+            className="w-full h-full object-cover"
+          />
+        </div>
+      </div>
+
       {/* Back Button */}
       <div className="flex justify-start mb-4">
         <Button
