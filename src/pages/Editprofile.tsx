@@ -32,7 +32,19 @@ const EditUser: React.FC = () => {
   const navigate = useNavigate();
 
   const [user, setUser] = useState<User | null>(null);
-  const [form, setForm] = useState<any>({});
+  const [form, setForm] = useState({
+    name: "",
+    email: "",
+    mobile: "",
+    city: "",
+    age: "",
+    bio: "",
+    languages: [] as string[],
+    interests: [] as string[],
+    offeredTags: [] as string[],
+    profile_image: null as File | null,
+  });
+
   const [categories, setCategories] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [markerPosition, setMarkerPosition] = useState<[number, number] | null>(
@@ -56,18 +68,18 @@ const EditUser: React.FC = () => {
       setLoading(true);
       const res = await axios.get(`/fake-users/${userId}`);
       const data: User = res.data.data;
-
+      console.log("Fetched user data:", data);
       setUser(data);
       setForm({
         name: data.name || "",
         email: data.email || "",
         mobile: data.mobile || "",
         city: data.city || "",
-        age: data.age || "",
+        age: data.age ?? "",
         bio: data.bio || "",
-        languages: data.languages || [],
-        interests: data.interests || [],
-        offeredTags: data.offeredTags || [],
+        languages: Array.isArray(data.languages) ? data.languages : [],
+        interests: Array.isArray(data.interests) ? data.interests : [],
+        offeredTags: Array.isArray(data.offeredTags) ? data.offeredTags : [],
         profile_image: null,
       });
 
@@ -208,12 +220,17 @@ const EditUser: React.FC = () => {
     "Japanese",
     "Portuguese",
     "urdu",
+    "Hindi",
+    "Mandar in chinese",
+    "Portuguese",
+    "Italian",
   ].map((lang) => ({
     label: lang,
     value: lang,
   }));
 
   const interestOptions = categories.map((tag) => ({ label: tag, value: tag }));
+  console.log("FORM LANGUAGES:", form.languages);
 
   return (
     <div className="relative max-w-3xl mx-auto p-6 bg-white shadow rounded-lg space-y-6">
@@ -307,14 +324,20 @@ const EditUser: React.FC = () => {
         {/* Multi-select */}
         <div>
           <label className="block font-medium mb-1">Languages</label>
+
           <Select
             isMulti
             options={languageOptions}
+            /* ✅ DB se jo languages aayi hain wo by default select hongi */
             value={languageOptions.filter((opt) =>
-              form.languages.includes(opt.value)
+              form.languages?.includes(opt.value)
             )}
+            /* ✅ User change kare to state update ho */
             onChange={(selected) =>
-              setForm({ ...form, languages: selected.map((s) => s.value) })
+              setForm((prev) => ({
+                ...prev,
+                languages: selected.map((s) => s.value),
+              }))
             }
           />
         </div>
