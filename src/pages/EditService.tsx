@@ -12,6 +12,12 @@ interface ServiceLocation {
   latitude: number;
   longitude: number;
 }
+interface RecurringSlot {
+  day: string;
+  date: string;
+  start_time: string;
+  end_time: string;
+}
 
 interface ServiceForm {
   title: string;
@@ -26,7 +32,7 @@ interface ServiceForm {
   date: string;
   startTime: string;
   endTime: string;
-  selectedDays: string[];
+  recurringSlots: RecurringSlot[];
   selectedTags: string[];
   description: string;
 }
@@ -54,11 +60,10 @@ const EditService: React.FC = () => {
     date: "",
     startTime: "",
     endTime: "",
-    selectedDays: [],
+    recurringSlots: [],
     selectedTags: [],
     description: "",
   });
-
   /* ================= FETCH SERVICE ================= */
 
   useEffect(() => {
@@ -75,7 +80,7 @@ const EditService: React.FC = () => {
         console.log("✅ Service response:", res.data);
 
         const s = res.data.data;
-
+        const isRecurring = s.service_type === "recurring";
         setFormData({
           title: s.title || "",
           language: s.Language || "",
@@ -91,12 +96,16 @@ const EditService: React.FC = () => {
           city: s.city || "",
           isDoorstepService: s.isDoorstepService || false,
           maxParticipants: String(s.max_participants || ""),
-          serviceType:
-            s.service_type === "recurring" ? "recurring" : "one-time",
-          date: s.date || "",
-          startTime: s.start_time || "",
-          endTime: s.end_time || "",
-          selectedDays: s.recurring_schedule?.map((r: any) => r.day) || [],
+          serviceType: isRecurring ? "recurring" : "one-time",
+
+          // one-time
+          date: !isRecurring ? s.date || "" : "",
+          startTime: !isRecurring ? s.start_time || "" : "",
+          endTime: !isRecurring ? s.end_time || "" : "",
+
+          // recurring
+          recurringSlots: isRecurring ? s.recurring_schedule || [] : [],
+
           selectedTags: s.tags || [],
           description: s.description || "",
         });
@@ -122,6 +131,15 @@ const EditService: React.FC = () => {
       [name]: type === "checkbox" ? checked : value,
     }));
   };
+  const handleSlotChange = (
+    index: number,
+    field: keyof RecurringSlot,
+    value: string
+  ) => {
+    const updated = [...formData.recurringSlots];
+    updated[index][field] = value;
+    setFormData({ ...formData, recurringSlots: updated });
+  };
 
   const handleImageChange = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -130,15 +148,6 @@ const EditService: React.FC = () => {
     console.log("🖼 Image selected:", file.name);
     setImageFile(file);
     setImagePreview(URL.createObjectURL(file));
-  };
-
-  const toggleDay = (day: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      selectedDays: prev.selectedDays.includes(day)
-        ? prev.selectedDays.filter((d) => d !== day)
-        : [...prev.selectedDays, day],
-    }));
   };
 
   /* ================= SUBMIT ================= */
@@ -184,14 +193,7 @@ const EditService: React.FC = () => {
       } else {
         fd.append(
           "recurring_schedule",
-          JSON.stringify(
-            formData.selectedDays.map((day) => ({
-              day,
-              date: formData.date,
-              start_time: formData.startTime,
-              end_time: formData.endTime,
-            }))
-          )
+          JSON.stringify(formData.recurringSlots)
         );
       }
 
@@ -202,12 +204,16 @@ const EditService: React.FC = () => {
 
       const adminToken = localStorage.getItem("token");
       console.log("🔑 Admin token:", adminToken);
-      await axios.patch("https://uat.api.betogetherapp.com/api/admin/service/update", fd, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-          Authorization: `Bearer ${adminToken}`,
-        },
-      });
+      await axios.patch(
+        "https://uat.api.betogetherapp.com/api/admin/service/update",
+        fd,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+            Authorization: `Bearer ${adminToken}`,
+          },
+        }
+      );
 
       toast.success("Service updated successfully ✅");
       navigate(-1);
@@ -226,12 +232,11 @@ const EditService: React.FC = () => {
   return (
     <div className="max-w-4xl mx-auto px-6 py-8 bg-white rounded-2xl shadow-xl my-10">
       <ToastContainer />
-      
+
       <h2 className="text-3xl font-bold text-center mb-6 text-blue-700">
         Edit Service
       </h2>
-<div className="absolute left-72 top-32 z-50">
-
+      <div className="absolute left-72 top-32 z-50">
         <Button
           onClick={() => navigate("/FakeUser")}
           className="bg-blue-600 text-white hover:bg-blue-700 rounded-md shadow-md text-sm sm:text-base"
@@ -360,24 +365,65 @@ const EditService: React.FC = () => {
 
         {/* RECURRING DAYS */}
         {formData.serviceType === "recurring" && (
-          <div>
-            <label className="block font-medium mb-2">Recurring Days</label>
-            <div className="flex gap-2 flex-wrap">
-              {days.map((d) => (
-                <button
-                  key={d}
-                  type="button"
-                  onClick={() => toggleDay(d)}
-                  className={`px-3 py-1 rounded-full ${
-                    formData.selectedDays.includes(d)
-                      ? "bg-blue-600 text-white"
-                      : "bg-gray-200"
-                  }`}
+          <div className="space-y-4">
+            <label className="block font-medium mb-2">Recurring Schedule</label>
+
+            {formData.recurringSlots.map((slot, index) => (
+              <div key={index} className="grid grid-cols-4 gap-3 items-center">
+                {/* DAY */}
+                <select
+                  value={slot.day}
+                  onChange={(e) =>
+                    handleSlotChange(index, "day", e.target.value)
+                  }
+                  className="border p-2 rounded"
                 >
-                  {d}
-                </button>
-              ))}
-            </div>
+                  {[
+                    "Monday",
+                    "Tuesday",
+                    "Wednesday",
+                    "Thursday",
+                    "Friday",
+                    "Saturday",
+                    "Sunday",
+                  ].map((d) => (
+                    <option key={d} value={d}>
+                      {d}
+                    </option>
+                  ))}
+                </select>
+
+                {/* DATE */}
+                <input
+                  type="date"
+                  value={slot.date}
+                  onChange={(e) =>
+                    handleSlotChange(index, "date", e.target.value)
+                  }
+                  className="border p-2 rounded"
+                />
+
+                {/* START TIME */}
+                <input
+                  type="time"
+                  value={slot.start_time}
+                  onChange={(e) =>
+                    handleSlotChange(index, "start_time", e.target.value)
+                  }
+                  className="border p-2 rounded"
+                />
+
+                {/* END TIME */}
+                <input
+                  type="time"
+                  value={slot.end_time}
+                  onChange={(e) =>
+                    handleSlotChange(index, "end_time", e.target.value)
+                  }
+                  className="border p-2 rounded"
+                />
+              </div>
+            ))}
           </div>
         )}
 
