@@ -9,6 +9,7 @@ import {
   UserX,
   CreditCard,
   CalendarCheck ,
+  Megaphone ,
 } from "lucide-react";
 
 import {
@@ -45,6 +46,7 @@ const navigationItems: NavItem[] = [
   { title: "Payment", url: "/Payment", icon: CreditCard },
    { title: "Booking", url: "/booking", icon: CalendarCheck },
    { title: "Request", url: "/request", icon: Trash2 },
+    { title: "Promotion", url: "/promotion", icon: Megaphone },
 ];
 
 export function AppSidebar() {

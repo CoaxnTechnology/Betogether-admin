@@ -21,6 +21,7 @@ import AllBookings from "./pages/Booking";
 import EditService from "./pages/EditService";
 import Request from "./pages/Request";
 import Profile from "./pages/Profile";
+import PromotionPlan from "./pages/Promotionplan";
 const queryClient = new QueryClient();
 
 function App() {
@@ -159,7 +160,7 @@ function App() {
               element={
                 <ProtectedRoute>
                   <Layout>
-                    <Request/>
+                    <Request />
                   </Layout>
                 </ProtectedRoute>
               }
@@ -169,7 +170,17 @@ function App() {
               element={
                 <ProtectedRoute>
                   <Layout>
-                    <Profile/>
+                    <Profile />
+                  </Layout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/promotion"
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <PromotionPlan />
                   </Layout>
                 </ProtectedRoute>
               }
