@@ -227,7 +227,14 @@ export default function PromotionPlan() {
                 <div className="flex justify-between items-center">
                   <div>
                     <p className="font-semibold text-lg">{plan.name}</p>
-                    <p className="text-gray-600">
+
+                    {plan.description && (
+                      <p className="text-gray-500 text-sm mt-1">
+                        {plan.description}
+                      </p>
+                    )}
+
+                    <p className="text-gray-600 mt-1">
                       {plan.days} Days — € {plan.price}
                     </p>
                   </div>
