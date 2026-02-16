@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
+import toast, { Toaster } from "react-hot-toast";
+import Swal from "sweetalert2";
 
 interface Plan {
   _id: string;
@@ -25,12 +27,14 @@ export default function PromotionPlan() {
   const fetchPlans = async () => {
     try {
       const res = await axios.get(
-        "https://uat.api.betogetherapp.com/api/admin/promotion-plans",
+        "https://uat.api.betogetherapp.com/api/admin/promotion-plans"
       );
-      const sorted = res.data.plans.sort((a: Plan, b: Plan) => a.days - b.days);
+      const sorted = res.data.plans.sort(
+        (a: Plan, b: Plan) => a.days - b.days
+      );
       setPlans(sorted);
     } catch (err) {
-      console.error("Error fetching plans");
+      toast.error("Failed to fetch promotion plans");
     }
   };
 
@@ -54,12 +58,12 @@ export default function PromotionPlan() {
   //////////////////////////////////////////////////
   const handleSubmit = async () => {
     if (!name.trim()) {
-      alert("Plan name is required");
+      toast.error("Plan name is required");
       return;
     }
 
     if (!days || !price) {
-      alert("Days and Price required");
+      toast.error("Days and price are required");
       return;
     }
 
@@ -69,29 +73,23 @@ export default function PromotionPlan() {
       if (editingId) {
         await axios.put(
           `https://uat.api.betogetherapp.com/api/admin/promotion-plan/${editingId}`,
-          {
-            name,
-            description,
-            days,
-            price,
-          },
+          { name, description, days, price }
         );
+        toast.success("Promotion plan updated successfully ✅");
       } else {
         await axios.post(
           "https://uat.api.betogetherapp.com/api/admin/create-promotion-plan",
-          {
-            name,
-            description,
-            days,
-            price,
-          },
+          { name, description, days, price }
         );
+        toast.success("Promotion plan added successfully 🎉");
       }
 
       resetForm();
       fetchPlans();
-    } catch (err) {
-      alert("Error saving plan");
+    } catch (err: any) {
+      toast.error(
+        err?.response?.data?.message || "Failed to save promotion plan"
+      );
     } finally {
       setLoading(false);
     }
@@ -109,111 +107,116 @@ export default function PromotionPlan() {
   };
 
   //////////////////////////////////////////////////
-  // Delete
+  // Delete (SweetAlert2)
   //////////////////////////////////////////////////
   const handleDelete = async (id: string) => {
-    if (!window.confirm("Delete this plan?")) return;
-    await axios.delete(
-      `https://uat.api.betogetherapp.com/api/admin/promotion-plan/${id}`,
-    );
-    fetchPlans();
+    const result = await Swal.fire({
+      title: "Delete this plan?",
+      text: "This action cannot be undone",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      confirmButtonText: "Yes, delete it",
+      cancelButtonText: "Cancel",
+    });
+
+    if (!result.isConfirmed) return;
+
+    try {
+      await axios.delete(
+        `https://uat.api.betogetherapp.com/api/admin/promotion-plan/${id}`
+      );
+      toast.success("Promotion plan deleted 🗑️");
+      fetchPlans();
+    } catch (err) {
+      toast.error("Failed to delete plan");
+    }
   };
 
+  //////////////////////////////////////////////////
+  // UI
+  //////////////////////////////////////////////////
   return (
-    <div className="min-h-screen bg-gray-100 p-4">
-      <div className="max-w-3xl mx-auto bg-white p-6 rounded-2xl shadow">
-        <h1 className="text-2xl font-bold text-center mb-6">
-          Promotion Plans Management
-        </h1>
+    <>
+      {/* ✅ Toaster ONLY for this file */}
+      <Toaster position="top-right" />
 
-        {/* FORM */}
-        <div className="bg-gray-50 p-4 rounded-xl mb-6">
-          <h2 className="text-lg font-semibold mb-4">
-            {editingId ? "Edit Plan" : "Add New Plan"}
-          </h2>
+      <div className="min-h-screen bg-gray-100 p-4">
+        <div className="max-w-3xl mx-auto bg-white p-6 rounded-2xl shadow">
+          <h1 className="text-2xl font-bold text-center mb-6">
+            Promotion Plans Management
+          </h1>
 
-          {/* Name */}
-          <div className="mb-3">
-            <label className="block text-sm font-medium mb-1">Plan Name</label>
+          {/* FORM */}
+          <div className="bg-gray-50 p-4 rounded-xl mb-6">
+            <h2 className="text-lg font-semibold mb-4">
+              {editingId ? "Edit Plan" : "Add New Plan"}
+            </h2>
+
+            {/* Name */}
             <input
               type="text"
+              className="w-full border rounded-lg p-2 mb-2"
+              placeholder="Plan name"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full border rounded-lg p-2"
-              placeholder="Enter plan name"
             />
-          </div>
 
-          {/* Description */}
-          <div className="mb-3">
-            <label className="block text-sm font-medium mb-1">
-              Description
-            </label>
+            {/* Description */}
             <textarea
+              className="w-full border rounded-lg p-2 mb-2"
+              placeholder="Plan description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="w-full border rounded-lg p-2"
-              placeholder="Enter plan description"
             />
-          </div>
 
-          {/* Days & Price */}
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium mb-1">
-                Duration (Days)
-              </label>
+            {/* Days & Price */}
+            <div className="grid grid-cols-2 gap-4 mb-3">
               <input
                 type="number"
+                className="border rounded-lg p-2"
+                placeholder="Days"
                 value={days}
                 onChange={(e) =>
                   setDays(e.target.value ? Number(e.target.value) : "")
                 }
-                className="w-full border rounded-lg p-2"
               />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-1">
-                Price (EUR)
-              </label>
               <input
                 type="number"
+                className="border rounded-lg p-2"
+                placeholder="Price (EUR)"
                 value={price}
                 onChange={(e) =>
                   setPrice(e.target.value ? Number(e.target.value) : "")
                 }
-                className="w-full border rounded-lg p-2"
               />
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={handleSubmit}
+                disabled={loading}
+                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg"
+              >
+                {loading
+                  ? "Saving..."
+                  : editingId
+                  ? "Update Plan"
+                  : "Create Plan"}
+              </button>
+
+              {editingId && (
+                <button
+                  onClick={resetForm}
+                  className="flex-1 bg-gray-400 text-white py-2 rounded-lg"
+                >
+                  Cancel
+                </button>
+              )}
             </div>
           </div>
 
-          <div className="flex gap-3 mt-4">
-            <button
-              onClick={handleSubmit}
-              disabled={loading}
-              className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg"
-            >
-              {loading
-                ? "Saving..."
-                : editingId
-                ? "Update Plan"
-                : "Create Plan"}
-            </button>
-
-            {editingId && (
-              <button
-                onClick={resetForm}
-                className="flex-1 bg-gray-400 text-white py-2 rounded-lg"
-              >
-                Cancel
-              </button>
-            )}
-          </div>
-        </div>
-
-        {/* LIST */}
-        <div>
+          {/* LIST */}
           <h2 className="text-lg font-semibold mb-4">Existing Plans</h2>
 
           {plans.length === 0 ? (
@@ -259,6 +262,6 @@ export default function PromotionPlan() {
           )}
         </div>
       </div>
-    </div>
+    </>
   );
 }
