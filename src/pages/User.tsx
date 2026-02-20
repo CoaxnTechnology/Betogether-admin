@@ -71,12 +71,55 @@ export default function User() {
         bookType: "xlsx",
         type: "array",
       });
-      const data = new Blob([excelBuffer], { type: "application/octet-stream" });
+      const data = new Blob([excelBuffer], {
+        type: "application/octet-stream",
+      });
       saveAs(data, "Users_List.xlsx");
       toast.success("Excel exported successfully");
     } catch (err) {
       console.error("Export error:", err);
       toast.error("Failed to export Excel");
+    }
+  };
+  const handleToggleUser = async (user: UserType) => {
+    const isBlocked = user.status === "banned";
+
+    const confirmAction = window.confirm(
+      isBlocked
+        ? "Are you sure you want to UNBLOCK this user?"
+        : "Are you sure you want to BLOCK this user? This will log them out from all devices.",
+    );
+
+    if (!confirmAction) return;
+
+    try {
+      const url = isBlocked ? "/unblock-user" : "/block-user";
+
+      const res = await axios.post(url, {
+        userId: user._id,
+      });
+
+      if (res.data.success) {
+        toast.success(
+          isBlocked
+            ? "User unblocked successfully"
+            : "User blocked successfully",
+        );
+
+        // 🔥 Instant UI update
+        setUsers((prev) =>
+          prev.map((u) =>
+            u._id === user._id
+              ? { ...u, status: isBlocked ? "active" : "banned" }
+              : u,
+          ),
+        );
+      } else {
+        toast.error(res.data.message || "Action failed");
+      }
+    } catch (err: any) {
+      console.error("Toggle user error:", err);
+      toast.error(err?.response?.data?.message || "Something went wrong");
     }
   };
 
@@ -90,7 +133,11 @@ export default function User() {
 
   return (
     <div className="p-3 md:p-6 bg-gray-50 min-h-screen relative">
-      <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} />
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+      />
 
       <div className="border rounded-lg shadow bg-white">
         {/* Header */}
@@ -123,7 +170,10 @@ export default function User() {
             </thead>
             <tbody>
               {currentRecords.map((user, i) => (
-                <tr key={user._id} className={i % 2 === 0 ? "bg-white" : "bg-gray-50"}>
+                <tr
+                  key={user._id}
+                  className={i % 2 === 0 ? "bg-white" : "bg-gray-50"}
+                >
                   <td className="p-2 border">
                     <img
                       src={
@@ -149,7 +199,9 @@ export default function User() {
                     </span>
                   </td>
                   <td className="p-2 border">
-                    {user.created_at ? new Date(user.created_at).toLocaleDateString() : "N/A"}
+                    {user.created_at
+                      ? new Date(user.created_at).toLocaleDateString()
+                      : "N/A"}
                   </td>
                   <td className="p-2 border">
                     <div className="flex gap-2">
@@ -159,8 +211,15 @@ export default function User() {
                       >
                         View
                       </Button>
-                      <Button className="bg-red-500 hover:bg-red-600 text-white text-xs px-3 py-1 rounded">
-                        Block
+                      <Button
+                        onClick={() => handleToggleUser(user)}
+                        className={`text-white text-xs px-3 py-1 rounded ${
+                          user.status === "banned"
+                            ? "bg-green-600 hover:bg-green-700"
+                            : "bg-red-500 hover:bg-red-600"
+                        }`}
+                      >
+                        {user.status === "banned" ? "Unblock" : "Block"}
                       </Button>
                     </div>
                   </td>

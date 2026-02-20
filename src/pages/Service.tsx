@@ -16,45 +16,52 @@ const Service: React.FC = () => {
   // Pagination States
   const [currentPage, setCurrentPage] = useState(1);
   const [recordsPerPage, setRecordsPerPage] = useState(5);
-
-  useEffect(() => {
-    const fetchServices = async () => {
-      try {
-        setLoading(true);
-        const res = await axios.get("/allservice");
-        if (res.data.success) {
-          setServices(res.data.data || []);
-          toast.success("Services fetched successfully");
-        } else {
-          toast.error("Failed to fetch services");
-        }
-      } catch (err) {
-        console.error("Error fetching services:", err);
-        toast.error("Error fetching services");
-      } finally {
-        setLoading(false);
+  const fetchServices = async () => {
+    try {
+      setLoading(true);
+      const res = await axios.get("/allservice");
+      if (res.data.success) {
+        setServices(res.data.data || []);
+      } else {
+        toast.error("Failed to fetch services");
       }
+    } catch (err) {
+      console.error("Error fetching services:", err);
+      toast.error("Error fetching services");
+    } finally {
+      setLoading(false);
+    }
+  };
+  useEffect(() => {
+    // initial load
+    fetchServices();
+
+    // 🔁 focus-based refresh (industry approach)
+    const onFocus = () => {
+      console.log("🔄 Tab focused → refreshing services");
+      fetchServices();
     };
 
-    fetchServices();
+    window.addEventListener("focus", onFocus);
+
+    return () => {
+      window.removeEventListener("focus", onFocus);
+    };
   }, []);
   const handleDeleteService = async (serviceId: string) => {
     const confirm = window.confirm(
-      "⚠️ Are you sure?\nThis will permanently delete the service, bookings & payments."
+      "⚠️ Are you sure?\nThis will permanently delete the service, bookings & payments.",
     );
     if (!confirm) return;
 
     try {
       setDeletingId(serviceId);
 
-      const res = await axios.delete(
-        `/admin-force-delete/${serviceId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("adminToken")}`,
-          },
-        }
-      );
+      const res = await axios.delete(`/admin-force-delete/${serviceId}`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("adminToken")}`,
+        },
+      });
 
       if (res.data.isSuccess) {
         toast.success("Service deleted successfully ✅");
@@ -90,6 +97,74 @@ const Service: React.FC = () => {
         No services found.
       </p>
     );
+  const handlePromoteService = async (serviceId: string) => {
+    try {
+      const res = await axios.post(
+        "/admin/promote-service",
+        { serviceId },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("adminToken")}`,
+          },
+        },
+      );
+
+      if (res.data.success) {
+        toast.success("Service promoted for 30 days 🚀");
+
+        // 🔥 UI update (important)
+        setServices((prev) =>
+          prev.map((srv) =>
+            srv._id === serviceId
+              ? {
+                  ...srv,
+                  isPromoted: true,
+                  promotionStatus: "active",
+                }
+              : srv,
+          ),
+        );
+      } else {
+        toast.error(res.data.message || "Promotion failed");
+      }
+    } catch (err: any) {
+      console.error("Promote error:", err);
+      toast.error(err.response?.data?.message || "Failed to promote service");
+    }
+  };
+  const handleCancelPromotion = async (serviceId: string) => {
+    try {
+      const res = await axios.post(
+        "/admin/cancel-promotion",
+        { serviceId },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("adminToken")}`,
+          },
+        },
+      );
+
+      if (res.data.success) {
+        toast.success("Promotion cancelled ❌");
+
+        setServices((prev) =>
+          prev.map((srv) =>
+            srv._id === serviceId
+              ? {
+                  ...srv,
+                  isPromoted: false,
+                  promotionStatus: "cancelled",
+                }
+              : srv,
+          ),
+        );
+      } else {
+        toast.error(res.data.message || "Cancel failed");
+      }
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || "Failed to cancel promotion");
+    }
+  };
 
   return (
     <div className="max-w-6xl mx-auto mt-8 px-3 sm:px-6 pb-10 relative">
@@ -166,6 +241,21 @@ const Service: React.FC = () => {
                         >
                           <Eye className="w-4 h-4" />
                         </Button>
+                        {!srv.isPromoted ? (
+                          <Button
+                            className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 text-sm rounded-md"
+                            onClick={() => handlePromoteService(srv._id)}
+                          >
+                            🚀 Promote
+                          </Button>
+                        ) : (
+                          <Button
+                            className="border border-red-400 text-red-600 hover:bg-red-50 px-2 py-1 text-xs rounded-md"
+                            onClick={() => handleCancelPromotion(srv._id)}
+                          >
+                            Cancel
+                          </Button>
+                        )}
 
                         {/* DELETE */}
                         <Button
