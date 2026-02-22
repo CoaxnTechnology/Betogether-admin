@@ -27,7 +27,7 @@ export const Header: FC = () => {
         const token = localStorage.getItem("token");
 
         const res = await axios.get(
-          "https://uat.api.betogetherapp.com/api/admin/pending-delete-count",
+          "https://api.betogetherapp.com/api/admin/pending-delete-count",
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("adminToken")}`,
