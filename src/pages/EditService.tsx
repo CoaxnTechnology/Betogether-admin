@@ -74,7 +74,7 @@ const EditService: React.FC = () => {
     const fetchService = async () => {
       try {
         const res = await axios.get(
-          `https://uat.api.betogetherapp.com/api/admin/service/${serviceId}`
+          `https://api.betogetherapp.com/api/admin/service/${serviceId}`
         );
 
         console.log("✅ Service response:", res.data);
@@ -205,7 +205,7 @@ const EditService: React.FC = () => {
       const adminToken = localStorage.getItem("token");
       console.log("🔑 Admin token:", adminToken);
       await axios.patch(
-        "https://uat.api.betogetherapp.com/api/admin/service/update",
+        "https://api.betogetherapp.com/api/admin/service/update",
         fd,
         {
           headers: {
