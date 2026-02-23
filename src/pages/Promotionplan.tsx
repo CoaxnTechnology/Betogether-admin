@@ -27,7 +27,7 @@ export default function PromotionPlan() {
   const fetchPlans = async () => {
     try {
       const res = await axios.get(
-        "https://uat.api.betogetherapp.com/api/admin/promotion-plans"
+        "https://api.betogetherapp.com/api/admin/promotion-plans"
       );
       const sorted = res.data.plans.sort(
         (a: Plan, b: Plan) => a.days - b.days
@@ -72,13 +72,13 @@ export default function PromotionPlan() {
 
       if (editingId) {
         await axios.put(
-          `https://uat.api.betogetherapp.com/api/admin/promotion-plan/${editingId}`,
+          `https://api.betogetherapp.com/api/admin/promotion-plan/${editingId}`,
           { name, description, days, price }
         );
         toast.success("Promotion plan updated successfully ✅");
       } else {
         await axios.post(
-          "https://uat.api.betogetherapp.com/api/admin/create-promotion-plan",
+          "https://api.betogetherapp.com/api/admin/create-promotion-plan",
           { name, description, days, price }
         );
         toast.success("Promotion plan added successfully 🎉");
@@ -124,7 +124,7 @@ export default function PromotionPlan() {
 
     try {
       await axios.delete(
-        `https://uat.api.betogetherapp.com/api/admin/promotion-plan/${id}`
+        `https://api.betogetherapp.com/api/admin/promotion-plan/${id}`
       );
       toast.success("Promotion plan deleted 🗑️");
       fetchPlans();
