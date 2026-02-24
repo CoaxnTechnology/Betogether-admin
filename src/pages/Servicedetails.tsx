@@ -65,14 +65,17 @@ const ServiceDetails: React.FC = () => {
       </p>
     );
 
-  const formatDate = (dateString: string | null | undefined) => {
+  const formatDate = (dateString?: string | null) => {
     if (!dateString) return "-";
-    const date = new Date(dateString);
+
+    const date = new Date(dateString + "T00:00:00");
+
+    if (isNaN(date.getTime())) return "-";
+
     return `${String(date.getDate()).padStart(2, "0")}-${String(
-      date.getMonth() + 1
+      date.getMonth() + 1,
     ).padStart(2, "0")}-${date.getFullYear()}`;
   };
-
   const infoItems = [
     { label: "Description", value: service.description || "-" },
     { label: "Category", value: service.category?.name || "-" },
