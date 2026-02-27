@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useSearchParams, useNavigate } from "react-router-dom";
 
 const ResetPassword: React.FC = () => {
   const [newPassword, setNewPassword] = useState("");
@@ -7,15 +8,21 @@ const ResetPassword: React.FC = () => {
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // 🔹 Get email & token from URL
-  const params = new URLSearchParams(window.location.search);
-  const email = params.get("email");
-  const token = params.get("token");
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+
+  const email = searchParams.get("email");
+  const token = searchParams.get("token");
 
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!API_BASE_URL) {
+      setMessage("Configuration error. Please contact support.");
+      return;
+    }
 
     if (!email || !token) {
       setMessage("Invalid or expired reset link");
@@ -60,9 +67,13 @@ const ResetPassword: React.FC = () => {
       const data = await res.json();
 
       if (data.isSuccess) {
-        setMessage("Password reset successful. You can now login.");
+        setMessage("Password reset successful. Redirecting to login...");
         setNewPassword("");
         setConfirmPassword("");
+
+        setTimeout(() => {
+          navigate("/login");
+        }, 2000);
       } else {
         setMessage(data.message || "Something went wrong");
       }
@@ -99,12 +110,17 @@ const ResetPassword: React.FC = () => {
           <label style={styles.checkbox}>
             <input
               type="checkbox"
+              checked={showPassword}
               onChange={() => setShowPassword(!showPassword)}
             />
             Show password
           </label>
 
-          <button type="submit" style={styles.button} disabled={loading}>
+          <button
+            type="submit"
+            style={styles.button}
+            disabled={loading}
+          >
             {loading ? "Please wait..." : "Reset Password"}
           </button>
         </form>
