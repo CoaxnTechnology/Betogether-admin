@@ -22,6 +22,7 @@ import EditService from "./pages/EditService";
 import Request from "./pages/Request";
 import Profile from "./pages/Profile";
 import PromotionPlan from "./pages/Promotionplan";
+import ResetPassword from "./pages/reset-password";
 const queryClient = new QueryClient();
 
 function App() {
@@ -185,6 +186,7 @@ function App() {
                 </ProtectedRoute>
               }
             />
+              <Route path="/reset-password" element={<ResetPassword />} />
             {/* Fallback */}
             <Route path="*" element={<NotFound />} />
           </Routes>
