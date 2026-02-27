@@ -47,28 +47,25 @@ const ResetPassword: React.FC = () => {
     try {
       setLoading(true);
 
-      const res = await fetch(
-        `${API_BASE_URL}/api/auth/forgot-password`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            email,
-            token,
-            new_password: newPassword,
-            confirm_password: confirmPassword,
-          }),
-        }
-      );
+      const res = await fetch(`${API_BASE_URL}/api/auth/forgot-password`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email,
+          token,
+          new_password: newPassword,
+          confirm_password: confirmPassword,
+        }),
+      });
 
       const data = await res.json();
 
       if (data.isSuccess) {
         toast.success(
-          "✅ Password reset ho gaya hai. Ab mobile app me jaakar login karein.",
-          { autoClose: 6000 }
+          `✅ Your password was updated successfully.\nFor security reasons, please log in again through the BeTogether mobile app.`,
+          { autoClose: 6000 },
         );
         setNewPassword("");
         setConfirmPassword("");
@@ -89,9 +86,7 @@ const ResetPassword: React.FC = () => {
       <div style={styles.wrapper}>
         <div style={styles.card}>
           <h2 style={styles.title}>Reset Password</h2>
-          <p style={styles.subtitle}>
-            Enter your new password below
-          </p>
+          <p style={styles.subtitle}>Enter your new password below</p>
 
           <form onSubmit={handleSubmit}>
             <input
@@ -119,11 +114,7 @@ const ResetPassword: React.FC = () => {
               Show password
             </label>
 
-            <button
-              type="submit"
-              style={styles.button}
-              disabled={loading}
-            >
+            <button type="submit" style={styles.button} disabled={loading}>
               {loading ? "Please wait..." : "Reset Password"}
             </button>
           </form>
