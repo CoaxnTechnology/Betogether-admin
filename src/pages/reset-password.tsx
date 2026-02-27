@@ -1,15 +1,15 @@
 import React, { useState } from "react";
-import { useSearchParams, useNavigate } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const ResetPassword: React.FC = () => {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
 
   const [searchParams] = useSearchParams();
-  const navigate = useNavigate();
 
   const email = searchParams.get("email");
   const token = searchParams.get("token");
@@ -20,33 +20,32 @@ const ResetPassword: React.FC = () => {
     e.preventDefault();
 
     if (!API_BASE_URL) {
-      setMessage("Configuration error. Please contact support.");
+      toast.error("Configuration error. Please contact support.");
       return;
     }
 
     if (!email || !token) {
-      setMessage("Invalid or expired reset link");
+      toast.error("Invalid or expired reset link");
       return;
     }
 
     if (!newPassword || !confirmPassword) {
-      setMessage("All fields are required");
+      toast.error("All fields are required");
       return;
     }
 
     if (newPassword !== confirmPassword) {
-      setMessage("Passwords do not match");
+      toast.error("Passwords do not match");
       return;
     }
 
     if (newPassword.length < 8) {
-      setMessage("Password must be at least 8 characters long");
+      toast.error("Password must be at least 8 characters long");
       return;
     }
 
     try {
       setLoading(true);
-      setMessage("");
 
       const res = await fetch(
         `${API_BASE_URL}/api/auth/forgot-password`,
@@ -67,67 +66,70 @@ const ResetPassword: React.FC = () => {
       const data = await res.json();
 
       if (data.isSuccess) {
-        setMessage("Password reset successful. Redirecting to login...");
+        toast.success(
+          "✅ Password reset ho gaya hai. Ab mobile app me jaakar login karein.",
+          { autoClose: 6000 }
+        );
         setNewPassword("");
         setConfirmPassword("");
-
-        setTimeout(() => {
-          navigate("/login");
-        }, 2000);
       } else {
-        setMessage(data.message || "Something went wrong");
+        toast.error(data.message || "Something went wrong");
       }
     } catch (error) {
-      setMessage("Server error. Please try again later.");
+      toast.error("Server error. Please try again later.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div style={styles.wrapper}>
-      <div style={styles.card}>
-        <h2 style={styles.title}>Reset Password</h2>
-        <p style={styles.subtitle}>Enter your new password below</p>
+    <>
+      <ToastContainer position="top-center" />
 
-        <form onSubmit={handleSubmit}>
-          <input
-            type={showPassword ? "text" : "password"}
-            placeholder="New password"
-            style={styles.input}
-            value={newPassword}
-            onChange={(e) => setNewPassword(e.target.value)}
-          />
+      <div style={styles.wrapper}>
+        <div style={styles.card}>
+          <h2 style={styles.title}>Reset Password</h2>
+          <p style={styles.subtitle}>
+            Enter your new password below
+          </p>
 
-          <input
-            type={showPassword ? "text" : "password"}
-            placeholder="Confirm password"
-            style={styles.input}
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-          />
-
-          <label style={styles.checkbox}>
+          <form onSubmit={handleSubmit}>
             <input
-              type="checkbox"
-              checked={showPassword}
-              onChange={() => setShowPassword(!showPassword)}
+              type={showPassword ? "text" : "password"}
+              placeholder="New password"
+              style={styles.input}
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
             />
-            Show password
-          </label>
 
-          <button
-            type="submit"
-            style={styles.button}
-            disabled={loading}
-          >
-            {loading ? "Please wait..." : "Reset Password"}
-          </button>
-        </form>
+            <input
+              type={showPassword ? "text" : "password"}
+              placeholder="Confirm password"
+              style={styles.input}
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+            />
 
-        {message && <p style={styles.message}>{message}</p>}
+            <label style={styles.checkbox}>
+              <input
+                type="checkbox"
+                checked={showPassword}
+                onChange={() => setShowPassword(!showPassword)}
+              />
+              Show password
+            </label>
+
+            <button
+              type="submit"
+              style={styles.button}
+              disabled={loading}
+            >
+              {loading ? "Please wait..." : "Reset Password"}
+            </button>
+          </form>
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 
@@ -186,11 +188,5 @@ const styles: { [key: string]: React.CSSProperties } = {
     borderRadius: "6px",
     fontSize: "16px",
     cursor: "pointer",
-  },
-  message: {
-    marginTop: "14px",
-    textAlign: "center",
-    fontSize: "14px",
-    color: "#333",
   },
 };
