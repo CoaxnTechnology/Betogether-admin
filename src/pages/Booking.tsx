@@ -12,6 +12,11 @@ interface CustomerType {
   status?: string;
   bookingId?: string;
   amount?: number;
+  cancelledBy?: "customer" | "provider" | "admin";
+  cancelReason?: string;
+  refundAmount?: number;
+  cancellationFee?: number;
+
   payment?: any;
 }
 
@@ -84,7 +89,11 @@ export default function AllBookings() {
 
   return (
     <div className="p-3 md:p-6 bg-gray-50 min-h-screen relative">
-      <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} />
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+      />
 
       <div className="border rounded-lg shadow bg-white">
         {/* Header */}
@@ -113,20 +122,27 @@ export default function AllBookings() {
                   <tr
                     className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}
                     onClick={() =>
-                      setOpenDrawerIndex(openDrawerIndex === index ? null : index)
+                      setOpenDrawerIndex(
+                        openDrawerIndex === index ? null : index,
+                      )
                     }
                   >
                     <td className="p-2 border">{group.service.title}</td>
                     <td className="p-2 border">{group.provider.name}</td>
                     <td className="p-2 border">{group.service.price}</td>
-                    <td className="p-2 border">{group.service.isFree ? "Yes" : "No"}</td>
+                    <td className="p-2 border">
+                      {group.service.isFree ? "Yes" : "No"}
+                    </td>
                     <td className="p-2 border cursor-pointer text-blue-600 flex justify-between items-center">
                       <span>
-                        {group.users.length} {group.users.length > 1 ? "users" : "user"}
+                        {group.users.length}{" "}
+                        {group.users.length > 1 ? "users" : "user"}
                       </span>
                       <span
                         className="ml-2 transform transition-transform duration-200"
-                        style={{ rotate: openDrawerIndex === index ? "180deg" : "0deg" }}
+                        style={{
+                          rotate: openDrawerIndex === index ? "180deg" : "0deg",
+                        }}
                       >
                         ▼
                       </span>
@@ -153,14 +169,45 @@ export default function AllBookings() {
                               />
                               <div className="flex-1">
                                 <p className="font-semibold">{user.name}</p>
-                                <p className="text-sm text-gray-600">{user.email}</p>
-                                {user.phone && <p className="text-sm text-gray-600">{user.phone}</p>}
-                                <p className="text-sm">
-                                  <span className="font-semibold">Booking Status:</span> {user.status || "N/A"}
+                                <p className="text-sm text-gray-600">
+                                  {user.email}
                                 </p>
+                                {user.phone && (
+                                  <p className="text-sm text-gray-600">
+                                    {user.phone}
+                                  </p>
+                                )}
+                                <p className="text-sm">
+                                  <span className="font-semibold">
+                                    Booking Status:
+                                  </span>{" "}
+                                  {user.status || "N/A"}
+                                </p>
+                                {user.status === "cancelled" && (
+                                  <>
+                                    <p className="text-sm text-red-600">
+                                      <b>Cancelled By:</b> {user.cancelledBy}
+                                    </p>
+
+                                    {/* <p className="text-sm text-gray-700">
+                                      <b>Refund:</b> {user.refundAmount ?? 0}{" "}
+                                      EUR
+                                    </p> */}
+
+                                    {user.cancelReason && (
+                                      <p className="text-sm italic text-gray-600">
+                                        <b>Reason:</b> {user.cancelReason}
+                                      </p>
+                                    )}
+                                  </>
+                                )}
                                 {user.payment && (
                                   <p className="text-sm">
-                                    <span className="font-semibold">Payment ID:</span> {user.payment._id || "N/A"} | Amount: {user.amount}
+                                    <span className="font-semibold">
+                                      Payment ID:
+                                    </span>{" "}
+                                    {user.payment._id || "N/A"} | Amount:{" "}
+                                    {user.amount}
                                   </p>
                                 )}
                               </div>
@@ -189,7 +236,7 @@ export default function AllBookings() {
               {Array.from({ length: totalPages }, (_, i) => i + 1)
                 .slice(
                   Math.max(0, currentPage - 3),
-                  Math.min(totalPages, currentPage + 2)
+                  Math.min(totalPages, currentPage + 2),
                 )
                 .map((num) => (
                   <button
