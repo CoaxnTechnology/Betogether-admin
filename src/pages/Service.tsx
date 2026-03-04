@@ -12,10 +12,10 @@ const Service: React.FC = () => {
   const [services, setServices] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [deletingId, setDeletingId] = useState<string | null>(null);
-
+  const [search, setSearch] = useState("");
   // Pagination States
   const [currentPage, setCurrentPage] = useState(1);
-  const [recordsPerPage, setRecordsPerPage] = useState(5);
+  const [recordsPerPage, setRecordsPerPage] = useState(10);
   const fetchServices = async () => {
     try {
       setLoading(true);
@@ -48,6 +48,24 @@ const Service: React.FC = () => {
       window.removeEventListener("focus", onFocus);
     };
   }, []);
+  const handleClearSearch = async () => {
+    try {
+      setSearch(""); // input empty
+      setLoading(true);
+
+      const res = await axios.get("/allservice");
+
+      if (res.data.success) {
+        setServices(res.data.data); // full list wapas
+        setCurrentPage(1); // pagination reset
+        toast.success("Search cleared");
+      }
+    } catch (err) {
+      toast.error("Failed to reset list");
+    } finally {
+      setLoading(false);
+    }
+  };
   const handleDeleteService = async (serviceId: string) => {
     const confirm = window.confirm(
       "⚠️ Are you sure?\nThis will permanently delete the service, bookings & payments.",
@@ -132,6 +150,29 @@ const Service: React.FC = () => {
       toast.error(err.response?.data?.message || "Failed to promote service");
     }
   };
+  const handleSearch = async () => {
+    try {
+      setLoading(true);
+
+      if (!search.trim()) {
+        fetchServices(); // if empty → show all
+        return;
+      }
+
+      const res = await axios.get(`/admin/search-services?keyword=${search}`);
+
+      if (res.data.success) {
+        setServices(res.data.data || []);
+        setCurrentPage(1); // reset pagination
+      } else {
+        toast.error("Search failed");
+      }
+    } catch (err) {
+      toast.error("Error searching services");
+    } finally {
+      setLoading(false);
+    }
+  };
   const handleCancelPromotion = async (serviceId: string) => {
     try {
       const res = await axios.post(
@@ -187,6 +228,28 @@ const Service: React.FC = () => {
               <h3 className="text-lg font-semibold">Services List</h3>
             </div>
             <p className="text-sm">Total: {services.length}</p>
+          </div>
+          <div className="flex justify-end mb-4 gap-2">
+            <input
+              type="text"
+              placeholder="Search services..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="border border-gray-300 rounded-md p-2 w-64 text-sm"
+            />
+
+            <Button
+              className="bg-blue-600 hover:bg-blue-700 text-white px-4"
+              onClick={handleSearch}
+            >
+              Search
+            </Button>
+            <Button
+              onClick={handleClearSearch}
+              className="bg-gray-500 hover:bg-gray-600 text-white text-sm px-4 py-2"
+            >
+              Clear
+            </Button>
           </div>
 
           {/* Table */}
@@ -284,7 +347,6 @@ const Service: React.FC = () => {
                 }}
                 className="border border-gray-300 rounded-md p-1 text-sm"
               >
-                <option value={5}>5</option>
                 <option value={10}>10</option>
                 <option value={15}>15</option>
                 <option value={20}>20</option>

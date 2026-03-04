@@ -59,7 +59,7 @@ export default function User() {
   const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
   const currentRecords = users.slice(indexOfFirstRecord, indexOfLastRecord);
   const totalPages = Math.ceil(users.length / recordsPerPage);
-
+  const [search, setSearch] = useState("");
   // Export Excel
   const exportToExcel = () => {
     try {
@@ -122,7 +122,24 @@ export default function User() {
       toast.error(err?.response?.data?.message || "Something went wrong");
     }
   };
+  const handleClearSearch = async () => {
+    try {
+      setSearch(""); // input empty
+      setLoading(true);
 
+      const res = await axios.get("/alluser");
+
+      if (res.data.success) {
+        setUsers(res.data.data); // full list wapas
+        setCurrentPage(1); // pagination reset
+        toast.success("Search cleared");
+      }
+    } catch (err) {
+      toast.error("Failed to reset list");
+    } finally {
+      setLoading(false);
+    }
+  };
   // Loader overlay
   if (loading)
     return (
@@ -130,6 +147,36 @@ export default function User() {
         <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
       </div>
     );
+  const handleSearch = async () => {
+    try {
+      setLoading(true);
+
+      if (!search.trim()) {
+        // empty search → show all users
+        const res = await axios.get("/alluser");
+        if (res.data.success) {
+          setUsers(res.data.data);
+          setCurrentPage(1);
+        }
+        return;
+      }
+
+      const res = await axios.get(`/admin/search-users?keyword=${search}`);
+
+      if (res.data.success) {
+        setUsers(res.data.data);
+        setCurrentPage(1); // reset pagination
+        toast.success("Search completed");
+      } else {
+        toast.error("Search failed");
+      }
+    } catch (err) {
+      console.error("Search error:", err);
+      toast.error("Error searching users");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="p-3 md:p-6 bg-gray-50 min-h-screen relative">
@@ -152,6 +199,28 @@ export default function User() {
           >
             Export
           </button>
+        </div>
+        <div className="flex flex-col md:flex-row justify-end items-center gap-2 p-3 bg-gray-50 border-b">
+          <input
+            type="text"
+            placeholder="Search by name, email, city, age..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="border border-gray-300 rounded-md p-2 text-sm w-64"
+          />
+
+          <Button
+            onClick={handleSearch}
+            className="bg-blue-600 hover:bg-blue-700 text-white text-sm px-4 py-2"
+          >
+            Search
+          </Button>
+          <Button
+            onClick={handleClearSearch}
+            className="bg-gray-500 hover:bg-gray-600 text-white text-sm px-4 py-2"
+          >
+            Clear
+          </Button>
         </div>
 
         {/* Table */}
