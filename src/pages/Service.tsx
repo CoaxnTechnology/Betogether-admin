@@ -9,72 +9,51 @@ import "react-toastify/dist/ReactToastify.css";
 
 const Service: React.FC = () => {
   const navigate = useNavigate();
+
   const [services, setServices] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [deletingId, setDeletingId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
-  // Pagination States
+
+  // pagination
   const [currentPage, setCurrentPage] = useState(1);
   const [recordsPerPage, setRecordsPerPage] = useState(10);
+  const [totalPages, setTotalPages] = useState(1);
+
+  // fetch services
   const fetchServices = async () => {
     try {
       setLoading(true);
-      const res = await axios.get("/allservice");
+
+      console.log("API calling page:", currentPage);
+
+      const res = await axios.get(
+        `/allservice?page=${currentPage}&limit=${recordsPerPage}`,
+      );
+      console.log("API RESPONSE:", res.data); // 👈 add this
+
       if (res.data.success) {
         setServices(res.data.data || []);
+        setTotalPages(res.data.totalPages || 1);
       } else {
         toast.error("Failed to fetch services");
       }
     } catch (err) {
-      console.error("Error fetching services:", err);
+      console.error(err);
       toast.error("Error fetching services");
     } finally {
       setLoading(false);
     }
   };
+
   useEffect(() => {
-    // initial load
     fetchServices();
+  }, [currentPage, recordsPerPage]);
 
-    // 🔁 focus-based refresh (industry approach)
-    const onFocus = () => {
-      console.log("🔄 Tab focused → refreshing services");
-      fetchServices();
-    };
-
-    window.addEventListener("focus", onFocus);
-
-    return () => {
-      window.removeEventListener("focus", onFocus);
-    };
-  }, []);
-  const handleClearSearch = async () => {
-    try {
-      setSearch(""); // input empty
-      setLoading(true);
-
-      const res = await axios.get("/allservice");
-
-      if (res.data.success) {
-        setServices(res.data.data); // full list wapas
-        setCurrentPage(1); // pagination reset
-        toast.success("Search cleared");
-      }
-    } catch (err) {
-      toast.error("Failed to reset list");
-    } finally {
-      setLoading(false);
-    }
-  };
   const handleDeleteService = async (serviceId: string) => {
-    const confirm = window.confirm(
-      "⚠️ Are you sure?\nThis will permanently delete the service, bookings & payments.",
-    );
+    const confirm = window.confirm("Are you sure you want to delete?");
     if (!confirm) return;
 
     try {
-      setDeletingId(serviceId);
-
       const res = await axios.delete(`/admin-force-delete/${serviceId}`, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("adminToken")}`,
@@ -82,80 +61,21 @@ const Service: React.FC = () => {
       });
 
       if (res.data.isSuccess) {
-        toast.success("Service deleted successfully ✅");
+        toast.success("Service deleted");
 
-        // Remove from UI
-        setServices((prev) => prev.filter((srv) => srv._id !== serviceId));
-      } else {
-        toast.error(res.data.message || "Delete failed");
+        setServices((prev) => prev.filter((s) => s._id !== serviceId));
       }
     } catch (err: any) {
-      toast.error(err.response?.data?.message || "Failed to delete service");
-    } finally {
-      setDeletingId(null);
+      toast.error(err.response?.data?.message || "Delete failed");
     }
   };
 
-  // Pagination Logic
-  const totalPages = Math.ceil(services.length / recordsPerPage);
-  const indexOfLastRecord = currentPage * recordsPerPage;
-  const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
-  const currentRecords = services.slice(indexOfFirstRecord, indexOfLastRecord);
-
-  if (loading)
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-      </div>
-    );
-
-  if (!services || services.length === 0)
-    return (
-      <p className="text-center mt-20 text-red-500 text-lg">
-        No services found.
-      </p>
-    );
-  const handlePromoteService = async (serviceId: string) => {
-    try {
-      const res = await axios.post(
-        "/admin/promote-service",
-        { serviceId },
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("adminToken")}`,
-          },
-        },
-      );
-
-      if (res.data.success) {
-        toast.success("Service promoted for 30 days 🚀");
-
-        // 🔥 UI update (important)
-        setServices((prev) =>
-          prev.map((srv) =>
-            srv._id === serviceId
-              ? {
-                  ...srv,
-                  isPromoted: true,
-                  promotionStatus: "active",
-                }
-              : srv,
-          ),
-        );
-      } else {
-        toast.error(res.data.message || "Promotion failed");
-      }
-    } catch (err: any) {
-      console.error("Promote error:", err);
-      toast.error(err.response?.data?.message || "Failed to promote service");
-    }
-  };
   const handleSearch = async () => {
     try {
       setLoading(true);
 
       if (!search.trim()) {
-        fetchServices(); // if empty → show all
+        fetchServices();
         return;
       }
 
@@ -163,98 +83,74 @@ const Service: React.FC = () => {
 
       if (res.data.success) {
         setServices(res.data.data || []);
-        setCurrentPage(1); // reset pagination
-      } else {
-        toast.error("Search failed");
+        setCurrentPage(1);
       }
-    } catch (err) {
-      toast.error("Error searching services");
+    } catch {
+      toast.error("Search failed");
     } finally {
       setLoading(false);
     }
   };
-  const handleCancelPromotion = async (serviceId: string) => {
-    try {
-      const res = await axios.post(
-        "/admin/cancel-promotion",
-        { serviceId },
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("adminToken")}`,
-          },
-        },
-      );
 
-      if (res.data.success) {
-        toast.success("Promotion cancelled ❌");
-
-        setServices((prev) =>
-          prev.map((srv) =>
-            srv._id === serviceId
-              ? {
-                  ...srv,
-                  isPromoted: false,
-                  promotionStatus: "cancelled",
-                }
-              : srv,
-          ),
-        );
-      } else {
-        toast.error(res.data.message || "Cancel failed");
-      }
-    } catch (err: any) {
-      toast.error(err.response?.data?.message || "Failed to cancel promotion");
-    }
+  const handleClearSearch = () => {
+    setSearch("");
+    setCurrentPage(1);
+    fetchServices();
   };
 
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+  }
+
   return (
-    <div className="max-w-6xl mx-auto mt-8 px-3 sm:px-6 pb-10 relative">
-      <ToastContainer
-        position="top-right"
-        autoClose={3000}
-        hideProgressBar={false}
-      />
-      {/* Page Header */}
+    <div className="max-w-6xl mx-auto mt-8 px-3 sm:px-6 pb-10">
+      <ToastContainer autoClose={3000} />
+
       <h2 className="text-2xl font-bold mb-6 text-center text-blue-700">
         All Services
       </h2>
 
-      {/* Services Table */}
       <Card className="shadow-md border rounded-2xl overflow-hidden">
         <CardContent className="p-4 sm:p-6">
-          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 bg-blue-600 text-white p-3 md:p-4 rounded-t-lg">
-            <div className="flex items-center gap-2 mb-2 sm:mb-0">
-              <Briefcase className="w-5 h-5 text-white" />
+          {/* header */}
+          <div className="flex justify-between items-center mb-4 bg-blue-600 text-white p-4 rounded-lg">
+            <div className="flex items-center gap-2">
+              <Briefcase className="w-5 h-5" />
               <h3 className="text-lg font-semibold">Services List</h3>
             </div>
-            <p className="text-sm">Total: {services.length}</p>
+
+            <div className="text-sm">Page {currentPage}</div>
           </div>
-          <div className="flex justify-end mb-4 gap-2">
+
+          {/* search */}
+          <div className="flex justify-end gap-2 mb-4">
             <input
               type="text"
-              placeholder="Search services..."
+              placeholder="Search services"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="border border-gray-300 rounded-md p-2 w-64 text-sm"
+              className="border p-2 rounded text-sm w-64"
             />
 
-            <Button
-              className="bg-blue-600 hover:bg-blue-700 text-white px-4"
-              onClick={handleSearch}
-            >
+            <Button className="bg-blue-600 text-white" onClick={handleSearch}>
               Search
             </Button>
+
             <Button
+              className="bg-gray-500 text-white"
               onClick={handleClearSearch}
-              className="bg-gray-500 hover:bg-gray-600 text-white text-sm px-4 py-2"
             >
               Clear
             </Button>
           </div>
 
-          {/* Table */}
+          {/* table */}
           <div className="overflow-x-auto">
-            <table className="min-w-full text-sm border-collapse table-auto">
+            <table className="min-w-full text-sm">
               <thead className="bg-blue-600 text-white">
                 <tr>
                   <th className="p-2 border text-left">Title</th>
@@ -265,113 +161,110 @@ const Service: React.FC = () => {
                   <th className="p-2 border text-center">Action</th>
                 </tr>
               </thead>
-              <tbody>
-                {currentRecords.map((srv: any, i: number) => (
-                  <tr
-                    key={i}
-                    className={`${
-                      i % 2 === 0 ? "bg-white" : "bg-gray-50"
-                    } hover:bg-gray-100 transition`}
-                  >
-                    <td className="p-2 border font-semibold">{srv.title}</td>
-                    <td className="p-2 border">{srv.category?.name || "-"}</td>
-                    <td className="p-2 border">
-                      {srv.isFree ? "Free" : srv.price ? `$${srv.price}` : "-"}
-                    </td>
-                    <td className="p-2 border text-gray-700">
-                      {srv.tags?.length ? (
-                        <div className="flex flex-wrap gap-1">
-                          {srv.tags.map((tag: string, idx: number) => (
-                            <span
-                              key={idx}
-                              className="bg-purple-300 text-black-800 text-xs px-2 py-1 rounded-full"
-                            >
-                              {tag}
-                            </span>
-                          ))}
-                        </div>
-                      ) : (
-                        "-"
-                      )}
-                    </td>
-                    <td className="p-2 border">{srv.owner?.name || "-"}</td>
-                    <td className="p-2 border text-center">
-                      <div className="flex justify-center gap-2">
-                        {/* VIEW */}
-                        <Button
-                          className="bg-blue-600 hover:bg-blue-700 text-white p-2 rounded"
-                          onClick={() => navigate(`/service/${srv._id}`)}
-                        >
-                          <Eye className="w-4 h-4" />
-                        </Button>
-                        {!srv.isPromoted ? (
-                          <Button
-                            className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 text-sm rounded-md"
-                            onClick={() => handlePromoteService(srv._id)}
-                          >
-                            🚀 Promote
-                          </Button>
-                        ) : (
-                          <Button
-                            className="border border-red-400 text-red-600 hover:bg-red-50 px-2 py-1 text-xs rounded-md"
-                            onClick={() => handleCancelPromotion(srv._id)}
-                          >
-                            Cancel
-                          </Button>
-                        )}
 
-                        {/* DELETE */}
-                        <Button
-                          className="bg-red-600 hover:bg-red-700 text-white p-2 rounded"
-                          onClick={() => handleDeleteService(srv._id)}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
+              <tbody>
+                {services.length === 0 ? (
+                  <tr>
+                    <td colSpan={6} className="text-center p-6 text-red-500">
+                      No services found
                     </td>
                   </tr>
-                ))}
+                ) : (
+                  services.map((srv: any, i: number) => (
+                    <tr
+                      key={srv._id}
+                      className={`${
+                        i % 2 === 0 ? "bg-white" : "bg-gray-50"
+                      } hover:bg-gray-100`}
+                    >
+                      <td className="p-2 border font-semibold">{srv.title}</td>
+
+                      <td className="p-2 border">
+                        {srv.category?.name || "-"}
+                      </td>
+
+                      <td className="p-2 border">
+                        {srv.isFree
+                          ? "Free"
+                          : srv.price
+                          ? `$${srv.price}`
+                          : "-"}
+                      </td>
+
+                      <td className="p-2 border">
+                        {srv.tags?.length
+                          ? srv.tags.map((tag: string, idx: number) => (
+                              <span
+                                key={idx}
+                                className="bg-purple-300 text-xs px-2 py-1 rounded-full mr-1"
+                              >
+                                {tag}
+                              </span>
+                            ))
+                          : "-"}
+                      </td>
+
+                      <td className="p-2 border">{srv.owner?.name || "-"}</td>
+
+                      <td className="p-2 border text-center">
+                        <div className="flex justify-center gap-2">
+                          <Button
+                            className="bg-blue-600 text-white p-2"
+                            onClick={() => navigate(`/service/${srv._id}`)}
+                          >
+                            <Eye className="w-4 h-4" />
+                          </Button>
+
+                          <Button
+                            className="bg-red-600 text-white p-2"
+                            onClick={() => handleDeleteService(srv._id)}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>
 
-          {/* Pagination Controls */}
-          <div className="flex flex-col sm:flex-row justify-between items-center gap-3 mt-4">
-            <div className="flex items-center gap-2 flex-wrap">
-              <label className="text-sm font-medium">Records per page:</label>
+          {/* pagination */}
+          <div className="flex justify-between items-center mt-6">
+            <div className="flex items-center gap-2">
+              <span className="text-sm">Records:</span>
+
               <select
                 value={recordsPerPage}
                 onChange={(e) => {
                   setRecordsPerPage(Number(e.target.value));
                   setCurrentPage(1);
                 }}
-                className="border border-gray-300 rounded-md p-1 text-sm"
+                className="border p-1 rounded text-sm"
               >
+                <option value={5}>5</option>
                 <option value={10}>10</option>
-                <option value={15}>15</option>
                 <option value={20}>20</option>
-                <option value={25}>25</option>
                 <option value={30}>30</option>
               </select>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-4">
               <Button
-                variant="outline"
                 disabled={currentPage === 1}
-                onClick={() => setCurrentPage((p) => p - 1)}
-                className="text-black-700 border-blue-800 hover:bg-blue-500 text-sm"
+                onClick={() => setCurrentPage((prev) => prev - 1)}
               >
                 Prev
               </Button>
+
               <span className="text-sm">
                 Page {currentPage} of {totalPages}
               </span>
+
               <Button
-                variant="outline"
                 disabled={currentPage === totalPages}
-                onClick={() => setCurrentPage((p) => p + 1)}
-                className="text-black-700 border-blue-800 hover:bg-blue-500 text-sm"
+                onClick={() => setCurrentPage((prev) => prev + 1)}
               >
                 Next
               </Button>
