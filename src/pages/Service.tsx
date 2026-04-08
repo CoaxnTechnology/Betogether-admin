@@ -24,12 +24,9 @@ const Service: React.FC = () => {
     try {
       setLoading(true);
 
-      console.log("API calling page:", currentPage);
-
       const res = await axios.get(
-        `/allservice?page=${currentPage}&limit=${recordsPerPage}`,
+        `/allservice?page=${currentPage}&limit=${recordsPerPage}&keyword=${search}`,
       );
-      console.log("API RESPONSE:", res.data); // 👈 add this
 
       if (res.data.success) {
         setServices(res.data.data || []);
@@ -74,15 +71,13 @@ const Service: React.FC = () => {
     try {
       setLoading(true);
 
-      if (!search.trim()) {
-        fetchServices();
-        return;
-      }
-
-      const res = await axios.get(`/admin/search-services?keyword=${search}`);
+      const res = await axios.get(
+        `/allservice?page=1&limit=${recordsPerPage}&keyword=${search}`,
+      );
 
       if (res.data.success) {
         setServices(res.data.data || []);
+        setTotalPages(res.data.totalPages || 1);
         setCurrentPage(1);
       }
     } catch {

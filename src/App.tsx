@@ -23,6 +23,7 @@ import Request from "./pages/Request";
 import Profile from "./pages/Profile";
 import PromotionPlan from "./pages/Promotionplan";
 import ResetPassword from "./pages/reset-password";
+import ReportServicePage from "./pages/ReportServicePage";
 const queryClient = new QueryClient();
 
 function App() {
@@ -186,7 +187,17 @@ function App() {
                 </ProtectedRoute>
               }
             />
-              <Route path="/reset-password" element={<ResetPassword />} />
+            <Route
+              path="/report-service"
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <ReportServicePage />
+                  </Layout>
+                </ProtectedRoute>
+              }
+            />
+            <Route path="/reset-password" element={<ResetPassword />} />
             {/* Fallback */}
             <Route path="*" element={<NotFound />} />
           </Routes>
