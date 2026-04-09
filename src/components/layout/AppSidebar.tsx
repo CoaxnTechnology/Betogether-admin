@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
-import { ChevronDown, ChevronRight,Trash2  } from "lucide-react";
+import { ChevronDown, ChevronRight, Flag, Trash2 } from "lucide-react";
 import {
   LayoutDashboard,
   Users,
@@ -8,8 +8,8 @@ import {
   Briefcase,
   UserX,
   CreditCard,
-  CalendarCheck ,
-  Megaphone ,
+  CalendarCheck,
+  Megaphone,
 } from "lucide-react";
 
 import {
@@ -23,7 +23,6 @@ import {
   SidebarMenuItem,
   SidebarHeader,
   useSidebar,
-  
 } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
 
@@ -44,9 +43,10 @@ const navigationItems: NavItem[] = [
   { title: "Service", url: "/service", icon: Briefcase },
   { title: "Fake-User", url: "/FakeUser", icon: UserX },
   { title: "Payment", url: "/Payment", icon: CreditCard },
-   { title: "Booking", url: "/booking", icon: CalendarCheck },
-   { title: "Request", url: "/request", icon: Trash2 },
-    { title: "Promotion", url: "/promotion", icon: Megaphone },
+  { title: "Booking", url: "/booking", icon: CalendarCheck },
+  { title: "Request", url: "/request", icon: Trash2 },
+  { title: "Promotion", url: "/promotion", icon: Megaphone },
+  { title: "Report-Service", url: "/report-service", icon: Flag },
 ];
 
 export function AppSidebar() {
@@ -63,7 +63,7 @@ export function AppSidebar() {
     setExpandedItems((prev) =>
       prev.includes(title)
         ? prev.filter((item) => item !== title)
-        : [...prev, title]
+        : [...prev, title],
     );
   };
 
@@ -72,7 +72,7 @@ export function AppSidebar() {
       "group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-smooth relative",
       isActive
         ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-md"
-        : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground hover:border-blue-500"
+        : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground hover:border-blue-500",
     );
 
   const getSubmenuCls = ({ isActive }: { isActive: boolean }) =>
@@ -80,14 +80,14 @@ export function AppSidebar() {
       "group flex items-center gap-3 rounded-lg px-3 py-2 ml-6 text-sm transition-smooth relative",
       isActive
         ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-sm"
-        : "text-sidebar-foreground/80 hover:bg-sidebar-submenu hover:text-sidebar-foreground"
+        : "text-sidebar-foreground/80 hover:bg-sidebar-submenu hover:text-sidebar-foreground",
     );
 
   return (
     <Sidebar
       className={cn(
         "border-r border-sidebar-border transition-smooth bg-gradient-sidebar",
-        collapsed ? "w-14" : "w-64"
+        collapsed ? "w-14" : "w-64",
       )}
       collapsible="icon"
     >
@@ -124,7 +124,7 @@ export function AppSidebar() {
                         <div
                           className={cn(
                             getNavCls({ isActive: hasActiveSubmenu }),
-                            "cursor-pointer"
+                            "cursor-pointer",
                           )}
                           onClick={() => {
                             if (!collapsed) toggleExpanded(item.title);
