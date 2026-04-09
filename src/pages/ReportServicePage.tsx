@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import api from "../API/baseUrl";
+import toast, { Toaster } from "react-hot-toast";
+import Swal from "sweetalert2";
 
 interface Report {
   user: {
@@ -43,157 +45,205 @@ const ReportServicePage = () => {
       setError("");
 
       const res = await api.get("/service-report/reports");
-      console.log(res.data);
-
       setData(res.data.data || []);
-    } catch (err: any) {
+    } catch (err) {
       console.error(err);
-      setError("Failed to load reports");
+      setError("error");
+
+      toast.error("Failed to load reports ❌", {
+        duration: 4000,
+        style: {
+          borderRadius: "10px",
+          background: "#333",
+          color: "#fff",
+        },
+      });
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    // first call
     fetchReports();
 
-    // ⏱️ every 30 minutes (30 * 60 * 1000 ms)
     const interval = setInterval(() => {
       fetchReports();
     }, 30 * 60 * 1000);
 
-    // cleanup (VERY IMPORTANT)
     return () => clearInterval(interval);
   }, []);
 
-  // ✅ APPROVE (DELETE)
+  // ✅ APPROVE
   const handleApprove = async (serviceId: string) => {
-    const confirmDelete = window.confirm(
-      "Are you sure you want to delete this service?",
-    );
-    if (!confirmDelete) return;
+    const result = await Swal.fire({
+      title: "Delete Service?",
+      text: "This action cannot be undone!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#ef4444",
+      cancelButtonColor: "#6b7280",
+      confirmButtonText: "Yes, delete it",
+    });
+
+    if (!result.isConfirmed) return;
+
+    const toastId = toast.loading("Deleting service...");
 
     try {
       await api.post("/service-report/approve", { serviceId });
 
+      toast.success("Service deleted successfully ✅", { id: toastId });
       fetchReports();
     } catch (err) {
       console.error(err);
-      alert("Failed to delete service");
+      toast.error("Failed to delete ❌", { id: toastId });
     }
   };
 
   // ❌ REJECT
   const handleReject = async (serviceId: string) => {
+    const result = await Swal.fire({
+      title: "Reject Report?",
+      text: "This will keep the service active.",
+      icon: "question",
+      showCancelButton: true,
+      confirmButtonColor: "#10b981",
+      cancelButtonColor: "#6b7280",
+      confirmButtonText: "Yes, reject",
+    });
+
+    if (!result.isConfirmed) return;
+
+    const toastId = toast.loading("Rejecting...");
+
     try {
       await api.post("/service-report/reject", { serviceId });
 
+      toast.success("Report rejected ✅", { id: toastId });
       fetchReports();
     } catch (err) {
       console.error(err);
-      alert("Failed to reject report");
+      toast.error("Failed to reject ❌", { id: toastId });
     }
   };
 
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold mb-6">Reported Services</h1>
+    <div className="p-6 bg-gray-100 min-h-screen">
+      <Toaster position="top-right" />
 
-      {/* 🔄 LOADING */}
-      {loading && <p>Loading reports...</p>}
+      <h1 className="text-3xl font-bold mb-6">🚨 Reported Services</h1>
 
-      {/* ❌ ERROR */}
-      {error && <p className="text-red-500">{error}</p>}
-
-      {/* 📭 EMPTY */}
-      {!loading && data.length === 0 && <p>No reports found</p>}
-
-      {/* 🔥 DATA */}
-      {data.map((item) => (
-        <div
-          key={item.service._id}
-          className="border rounded-xl p-5 mb-6 shadow-md bg-white"
-        >
-          {/* 🔹 SERVICE INFO */}
-          <div className="flex gap-4">
-            <img
-              src={item.service.image || "/no-image.png"}
-              alt="service"
-              className="w-32 h-32 object-cover rounded-lg"
-            />
-
-            <div>
-              <h2 className="text-xl font-semibold">{item.service.title}</h2>
-
-              <p className="text-gray-600">{item.service.description}</p>
-
-              <p className="mt-2">
-                💰 {item.service.isFree ? "Free" : `₹${item.service.price}`}
-              </p>
-
-              {/* OWNER */}
-              <div className="mt-2 text-sm text-gray-500">
-                👤 Owner: {item.service.owner?.name} (
-                {item.service.owner?.email})
-              </div>
-
-              {/* REPORT COUNT */}
-              <div className="mt-2 text-red-600 font-semibold">
-                🚨 Total Reports: {item.totalReports}
-              </div>
-            </div>
+      {/* 🔥 FULL SCREEN LOADER */}
+      {loading && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-2xl shadow-xl flex flex-col items-center gap-4">
+            <div className="w-14 h-14 border-4 border-gray-200 border-t-blue-500 rounded-full animate-spin"></div>
+            <p className="text-gray-700 font-medium">Fetching reports...</p>
           </div>
+        </div>
+      )}
 
-          {/* 🔹 REPORT USERS LIST */}
-          <div className="mt-4">
-            <h3 className="font-semibold mb-2">Reported By Users:</h3>
+      {/* ❌ ERROR UI */}
+      {!loading && error && (
+        <div className="flex justify-center mt-20">
+          <div className="bg-white p-6 rounded-xl shadow-md text-center max-w-sm">
+            <h2 className="text-lg font-semibold text-red-500 mb-2">
+              Something went wrong ❌
+            </h2>
 
-            {item.reports.map((r, index) => (
-              <div key={index} className="border p-3 rounded mb-2 bg-gray-50">
-                <div className="flex items-center gap-3">
-                  {r.user.profile_image && (
-                    <img
-                      src={r.user.profile_image}
-                      alt="user"
-                      className="w-8 h-8 rounded-full"
-                    />
-                  )}
-
-                  <div>
-                    <p className="font-medium">
-                      {r.user.name} ({r.user.email})
-                    </p>
-                  </div>
-                </div>
-
-                <p className="mt-1 text-sm">⚠️ Reason: {r.reason}</p>
-
-                {r.message && (
-                  <p className="text-sm text-gray-600">📝 {r.message}</p>
-                )}
-              </div>
-            ))}
-          </div>
-
-          {/* 🔹 ACTION BUTTONS */}
-          <div className="flex gap-4 mt-4">
-            <button
-              onClick={() => handleApprove(item.service._id)}
-              className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
-            >
-              Approve & Delete
-            </button>
+            <p className="text-gray-600 text-sm mb-4">
+              Unable to fetch reports. Please try again.
+            </p>
 
             <button
-              onClick={() => handleReject(item.service._id)}
-              className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
+              onClick={fetchReports}
+              className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
             >
-              Reject
+              Retry
             </button>
           </div>
         </div>
-      ))}
+      )}
+
+      {/* 📭 EMPTY */}
+      {!loading && !error && data.length === 0 && (
+        <div className="flex justify-center mt-20">
+          <div className="bg-white p-6 rounded-xl shadow-md text-center">
+            🚫 No reported services found
+          </div>
+        </div>
+      )}
+
+      {/* 🔥 DATA */}
+      {!loading &&
+        !error &&
+        data.map((item) => (
+          <div
+            key={item.service._id}
+            className="bg-white rounded-xl shadow-lg p-5 mb-6 border"
+          >
+            <div className="flex gap-5">
+              <img
+                src={item.service.image || "/no-image.png"}
+                className="w-32 h-32 rounded-lg object-cover"
+              />
+
+              <div className="flex-1">
+                <h2 className="text-xl font-semibold">{item.service.title}</h2>
+
+                <p className="text-gray-600 mt-1">{item.service.description}</p>
+
+                <p className="mt-2 font-medium">
+                  💰 {item.service.isFree ? "Free" : `₹${item.service.price}`}
+                </p>
+
+                <p className="text-sm text-gray-500 mt-1">
+                  👤 {item.service.owner?.name}
+                </p>
+
+                <p className="text-red-600 font-semibold mt-2">
+                  🚨 Reports: {item.totalReports}
+                </p>
+              </div>
+            </div>
+
+            {/* USERS */}
+            <div className="mt-4">
+              <h3 className="font-semibold mb-2">Reported By:</h3>
+
+              {item.reports.map((r, index) => (
+                <div key={index} className="bg-gray-50 p-3 rounded mb-2 border">
+                  <p className="font-medium">
+                    {r.user.name} ({r.user.email})
+                  </p>
+
+                  <p className="text-sm mt-1">⚠️ {r.reason}</p>
+
+                  {r.message && (
+                    <p className="text-gray-600 text-sm">📝 {r.message}</p>
+                  )}
+                </div>
+              ))}
+            </div>
+
+            {/* ACTIONS */}
+            <div className="flex gap-4 mt-4">
+              <button
+                onClick={() => handleApprove(item.service._id)}
+                className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded"
+              >
+                Delete
+              </button>
+
+              <button
+                onClick={() => handleReject(item.service._id)}
+                className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded"
+              >
+                Reject
+              </button>
+            </div>
+          </div>
+        ))}
     </div>
   );
 };
