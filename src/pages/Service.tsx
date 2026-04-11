@@ -66,6 +66,65 @@ const Service: React.FC = () => {
       toast.error(err.response?.data?.message || "Delete failed");
     }
   };
+  const handlePromoteService = async (serviceId: string) => {
+    try {
+      const res = await axios.post(
+        "/admin/promote-service",
+        { serviceId },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("adminToken")}`,
+          },
+        },
+      );
+
+      if (res.data.success) {
+        toast.success("Service promoted for 30 days 🚀");
+
+        setServices((prev) =>
+          prev.map((srv) =>
+            srv._id === serviceId
+              ? { ...srv, isPromoted: true, promotionStatus: "active" }
+              : srv,
+          ),
+        );
+      } else {
+        toast.error(res.data.message || "Promotion failed");
+      }
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || "Failed to promote service");
+    }
+  };
+
+  const handleCancelPromotion = async (serviceId: string) => {
+    try {
+      const res = await axios.post(
+        "/admin/cancel-promotion",
+        { serviceId },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("adminToken")}`,
+          },
+        },
+      );
+
+      if (res.data.success) {
+        toast.success("Promotion cancelled ❌");
+
+        setServices((prev) =>
+          prev.map((srv) =>
+            srv._id === serviceId
+              ? { ...srv, isPromoted: false, promotionStatus: "cancelled" }
+              : srv,
+          ),
+        );
+      } else {
+        toast.error(res.data.message || "Cancel failed");
+      }
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || "Failed to cancel promotion");
+    }
+  };
 
   const handleSearch = async () => {
     try {
@@ -209,7 +268,21 @@ const Service: React.FC = () => {
                           >
                             <Eye className="w-4 h-4" />
                           </Button>
-
+                          {!srv.isPromoted ? (
+                            <Button
+                              className="bg-green-600 text-white px-3 py-1 text-sm"
+                              onClick={() => handlePromoteService(srv._id)}
+                            >
+                              🚀 Promote
+                            </Button>
+                          ) : (
+                            <Button
+                              className="border border-red-400 text-red-600 px-2 py-1 text-xs"
+                              onClick={() => handleCancelPromotion(srv._id)}
+                            >
+                              Cancel
+                            </Button>
+                          )}
                           <Button
                             className="bg-red-600 text-white p-2"
                             onClick={() => handleDeleteService(srv._id)}
