@@ -24,6 +24,7 @@ import Profile from "./pages/Profile";
 import PromotionPlan from "./pages/Promotionplan";
 import ResetPassword from "./pages/reset-password";
 import ReportServicePage from "./pages/ReportServicePage";
+import WalletConfigPage from "./pages/WalletConfigPage";
 const queryClient = new QueryClient();
 
 function App() {
@@ -193,6 +194,16 @@ function App() {
                 <ProtectedRoute>
                   <Layout>
                     <ReportServicePage />
+                  </Layout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/wallet-config"
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <WalletConfigPage />
                   </Layout>
                 </ProtectedRoute>
               }

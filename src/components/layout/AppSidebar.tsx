@@ -47,6 +47,7 @@ const navigationItems: NavItem[] = [
   { title: "Request", url: "/request", icon: Trash2 },
   { title: "Promotion", url: "/promotion", icon: Megaphone },
   { title: "Report-Service", url: "/report-service", icon: Flag },
+  {title: "Wallet Config", url: "/wallet-config", icon: Layers },
 ];
 
 export function AppSidebar() {
