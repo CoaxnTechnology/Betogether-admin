@@ -25,6 +25,8 @@ import PromotionPlan from "./pages/Promotionplan";
 import ResetPassword from "./pages/reset-password";
 import ReportServicePage from "./pages/ReportServicePage";
 import WalletConfigPage from "./pages/WalletConfigPage";
+import DeletedAccounts from "./pages/DeletedAccounts";
+import DeletedAccountDetails from "./pages/DeletedAccountDetails";
 const queryClient = new QueryClient();
 
 function App() {
@@ -204,6 +206,26 @@ function App() {
                 <ProtectedRoute>
                   <Layout>
                     <WalletConfigPage />
+                  </Layout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/deleted-accounts"
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <DeletedAccounts />
+                  </Layout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/deleted-accounts/:backupId"
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <DeletedAccountDetails />
                   </Layout>
                 </ProtectedRoute>
               }
