@@ -6,7 +6,7 @@ import axios from "../API/baseUrl"; // ✅ your axios instance
 import { Button } from "@/components/ui/button";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-
+import { makeAmbassador, removeAmbassador } from "../API/ambassadorApi";
 interface UserType {
   _id: string;
   name?: string;
@@ -15,6 +15,8 @@ interface UserType {
   status?: string;
   profile_image?: string | null;
   created_at?: string;
+  isAmbassador?: boolean;
+  ambassadorStatus?: string;
 }
 
 export default function User() {
@@ -32,6 +34,7 @@ export default function User() {
 
   // Fetch users from API
   useEffect(() => {
+
     const fetchUsers = async () => {
       try {
         setLoading(true);
@@ -122,6 +125,57 @@ export default function User() {
       toast.error(err?.response?.data?.message || "Something went wrong");
     }
   };
+ const handleToggleAmbassador = async (
+  user: UserType
+) => {
+  try {
+    const token =
+      localStorage.getItem("adminToken");
+
+    if (!token) {
+      toast.error("Admin token missing");
+      return;
+    }
+
+    const isAmbassador =
+      user.isAmbassador;
+
+    const response = isAmbassador
+      ? await removeAmbassador(
+          user._id,
+          token
+        )
+      : await makeAmbassador(
+          user._id,
+          token
+        );
+
+    if (response.data.isSuccess) {
+      toast.success(
+        isAmbassador
+          ? "Ambassador removed"
+          : "Ambassador assigned"
+      );
+
+      setUsers((prev) =>
+        prev.map((u) =>
+          u._id === user._id
+            ? {
+                ...u,
+                isAmbassador:
+                  !isAmbassador,
+              }
+            : u
+        )
+      );
+    }
+  } catch (err: any) {
+    toast.error(
+      err?.response?.data?.message ||
+        "Something went wrong"
+    );
+  }
+};
   const handleClearSearch = async () => {
     try {
       setSearch(""); // input empty
@@ -233,6 +287,10 @@ export default function User() {
                 <th className="p-2 border">Email</th>
                 <th className="p-2 border">Mobile</th>
                 <th className="p-2 border">Status</th>
+
+                {/* NEW COLUMN */}
+                <th className="p-2 border">Ambassador</th>
+
                 <th className="p-2 border">Created At</th>
                 <th className="p-2 border">Action</th>
               </tr>
@@ -267,6 +325,18 @@ export default function User() {
                       {displayValue(user.status)}
                     </span>
                   </td>
+
+                  <td className="p-2 border">
+                    {user.isAmbassador ? (
+                      <span className="px-2 py-1 bg-purple-100 text-purple-700 rounded text-xs font-semibold">
+                        Ambassador
+                      </span>
+                    ) : (
+                      <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs font-semibold">
+                        User
+                      </span>
+                    )}
+                  </td>
                   <td className="p-2 border">
                     {user.created_at
                       ? new Date(user.created_at).toLocaleDateString()
@@ -289,6 +359,18 @@ export default function User() {
                         }`}
                       >
                         {user.status === "banned" ? "Unblock" : "Block"}
+                      </Button>
+                      <Button
+                        onClick={() => handleToggleAmbassador(user)}
+                        className={`text-white text-xs px-3 py-1 rounded ${
+                          user.isAmbassador
+                            ? "bg-orange-500 hover:bg-orange-600"
+                            : "bg-purple-600 hover:bg-purple-700"
+                        }`}
+                      >
+                        {user.isAmbassador
+                          ? "Remove Ambassador"
+                          : "Make Ambassador"}
                       </Button>
                     </div>
                   </td>
