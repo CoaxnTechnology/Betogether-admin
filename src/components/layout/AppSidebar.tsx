@@ -11,6 +11,8 @@ import {
   CalendarCheck,
   Megaphone,
   UserRoundX,
+  Globe,
+  BadgeCheck,
 } from "lucide-react";
 
 import {
@@ -54,6 +56,21 @@ const navigationItems: NavItem[] = [
     title: "Deleted Accounts",
     url: "/deleted-accounts",
     icon: UserRoundX,
+  },
+  {
+    title: "Territories",
+    url: "/territories",
+    icon: Globe,
+  },
+  {
+    title: "Ambassador Applications",
+    url: "/ambassador-applications",
+    icon: BadgeCheck,
+  },
+  {
+    title: "Ambassadors",
+    url: "/ambassadors",
+    icon: Users,
   },
 ];
 
