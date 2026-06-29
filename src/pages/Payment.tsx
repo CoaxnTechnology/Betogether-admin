@@ -12,8 +12,12 @@ import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 const PaymentSettings = () => {
-  const [commission, setCommission] = useState("");
-  const [savedCommission, setSavedCommission] = useState("");
+  const [providerCommission, setProviderCommission] = useState("");
+  const [customerCommission, setCustomerCommission] = useState("");
+
+  const [savedProviderCommission, setSavedProviderCommission] = useState("");
+
+  const [savedCustomerCommission, setSavedCustomerCommission] = useState("");
   const [cancellationEnabled, setCancellationEnabled] = useState(false);
   const [cancellationPercentage, setCancellationPercentage] = useState("");
   const [savedCancellation, setSavedCancellation] = useState("");
@@ -35,15 +39,17 @@ const PaymentSettings = () => {
         axios.get("https://uat.api.betogetherapp.com/api/admin/cancellation"),
       ]);
 
-      const commissionValue =
-        commissionRes.data?.percentage === 0 ||
-        commissionRes.data?.percentage === undefined
-          ? ""
-          : commissionRes.data.percentage.toString();
+      const providerValue =
+        commissionRes.data?.providerCommissionPercentage ?? "";
 
-      setCommission(commissionValue);
-      setSavedCommission(commissionValue);
+      const customerValue =
+        commissionRes.data?.customerCommissionPercentage ?? "";
 
+      setProviderCommission(providerValue.toString());
+      setCustomerCommission(customerValue.toString());
+
+      setSavedProviderCommission(providerValue.toString());
+      setSavedCustomerCommission(customerValue.toString());
       setCancellationEnabled(cancelRes.data?.enabled || false);
 
       const cancelValue =
@@ -66,7 +72,7 @@ const PaymentSettings = () => {
       setPaymentLoading(true);
 
       const res = await axios.get(
-        `https://uat.api.betogetherapp.com/api/admin/payment?page=${pageNumber}&limit=${limit}`
+        `https://uat.api.betogetherapp.com/api/admin/payment?page=${pageNumber}&limit=${limit}`,
       );
 
       setPayments(res.data.data || []);
@@ -89,8 +95,10 @@ const PaymentSettings = () => {
       await axios.put(
         "https://uat.api.betogetherapp.com/api/admin/commission",
         {
-          percentage: commission ? Number(commission) : null,
-        }
+          providerCommissionPercentage: Number(providerCommission),
+
+          customerCommissionPercentage: Number(customerCommission),
+        },
       );
       fetchSettings();
       toast.success("Commission updated ✅");
@@ -108,7 +116,7 @@ const PaymentSettings = () => {
           percentage: cancellationEnabled
             ? Number(cancellationPercentage)
             : null,
-        }
+        },
       );
       fetchSettings();
       toast.success("Cancellation setting updated ✅");
@@ -138,13 +146,23 @@ const PaymentSettings = () => {
           <Percent /> Commission Percentage
         </h3>
 
-        <input
-          type="number"
-          placeholder="Enter percentage"
-          value={commission}
-          onChange={(e) => setCommission(e.target.value)}
-          className="w-full p-3 border rounded-xl"
-        />
+        <div className="space-y-3">
+          <input
+            type="number"
+            placeholder="Provider Commission %"
+            value={providerCommission}
+            onChange={(e) => setProviderCommission(e.target.value)}
+            className="w-full p-3 border rounded-xl"
+          />
+
+          <input
+            type="number"
+            placeholder="Customer Commission %"
+            value={customerCommission}
+            onChange={(e) => setCustomerCommission(e.target.value)}
+            className="w-full p-3 border rounded-xl"
+          />
+        </div>
 
         <button
           onClick={handleCommissionSave}
@@ -191,16 +209,20 @@ const PaymentSettings = () => {
       {/* CURRENT SAVED SETTINGS */}
       <div className="bg-white shadow-xl rounded-2xl p-5 border">
         <h3 className="text-lg font-semibold mb-3">Current Saved Settings</h3>
+
         <table className="w-full border-collapse">
           <thead>
-            <tr className="border-b font-semibold">
-              <th className="p-2">Commission %</th>
+            <tr className="border-b font-semibold text-center">
+              <th className="p-2">Provider Commission %</th>
+              <th className="p-2">Customer Commission %</th>
               <th className="p-2">Cancellation %</th>
             </tr>
           </thead>
+
           <tbody>
-            <tr className="border-b text-sm">
-              <td className="p-2">{savedCommission || "-"}</td>
+            <tr className="border-b text-sm text-center">
+              <td className="p-2">{savedProviderCommission || "-"}</td>
+              <td className="p-2">{savedCustomerCommission || "-"}</td>
               <td className="p-2">{savedCancellation || "-"}</td>
             </tr>
           </tbody>
