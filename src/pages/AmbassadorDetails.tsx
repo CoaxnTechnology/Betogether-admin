@@ -25,28 +25,50 @@ const AmbassadorDetails = () => {
 
   const loadData = async () => {
     try {
+      console.log("loadData request", { id, hasToken: !!token });
+
+      console.log("Calling getAmbassadorById", { id });
+      console.log("Calling getAmbassadorWalletHistory", { id });
+      console.log("Calling getAmbassadorAnalytics", { id });
+
       const [detailsRes, walletRes, analyticsRes] = await Promise.all([
         getAmbassadorById(id!, token),
         getAmbassadorWalletHistory(id!, token),
         getAmbassadorAnalytics(id!, token),
       ]);
 
+      console.log("getAmbassadorById response", detailsRes?.data ?? detailsRes);
+      console.log(
+        "getAmbassadorWalletHistory response",
+        walletRes?.data ?? walletRes,
+      );
+      console.log(
+        "getAmbassadorAnalytics response",
+        analyticsRes?.data ?? analyticsRes,
+      );
+
       console.log(
         "Ambassador Details API Response:",
-        detailsRes.data.ambassador,
+        detailsRes.data?.ambassador,
       );
-      console.log("Wallet History API Response:", walletRes.data.history);
-      console.log("Analytics API Response:", analyticsRes.data.analytics);
+      console.log("Wallet History API Response:", walletRes.data?.history);
+      console.log("Analytics API Response:", analyticsRes.data?.analytics);
       console.log(
         "Sub Ambassadors Data:",
-        analyticsRes.data.analytics?.subAmbassadors,
+        analyticsRes.data?.analytics?.subAmbassadors,
       );
 
-      setAmbassador(detailsRes.data.ambassador);
+      console.log("Setting ambassador state", detailsRes.data?.ambassador);
+      setAmbassador(detailsRes.data?.ambassador);
 
-      setWalletHistory(walletRes.data.history || []);
+      console.log(
+        "Setting wallet history state",
+        walletRes.data?.history || [],
+      );
+      setWalletHistory(walletRes.data?.history || []);
 
-      setAnalytics(analyticsRes.data.analytics);
+      console.log("Setting analytics state", analyticsRes.data?.analytics);
+      setAnalytics(analyticsRes.data?.analytics);
     } catch (err) {
       console.log("API Error:", err);
     }
@@ -61,12 +83,16 @@ const AmbassadorDetails = () => {
   }
   const handleRemoveAmbassador = async () => {
     try {
+      console.log("handleRemoveAmbassador request", { id, hasToken: !!token });
       const res = await removeAmbassador(id!, token);
+      console.log("removeAmbassador response", res?.data ?? res);
 
-      if (res.data.isSuccess) {
+      if (res.data?.isSuccess) {
+        console.log("removeAmbassador success, navigating away");
         navigate("/ambassadors");
       }
     } catch (error: any) {
+      console.log("removeAmbassador error", error);
       setShowDeleteModal(false);
 
       setErrorMessage(

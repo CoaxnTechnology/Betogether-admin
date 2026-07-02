@@ -10,14 +10,20 @@ import { getTerritories } from "../API/territoryApi";
 interface Application {
   _id: string;
 
+  applicationType: "self" | "exclusive_request";
+
+  status: string;
+  created_at: string;
+
+  city?: string;
+
   profession?: string;
   targetAudience?: string;
   whyBecomeAmbassador?: string;
   howPromoteBetogether?: string;
   socialMediaUrls?: string[];
 
-  status: string;
-  created_at: string;
+  acceptedAgreement?: boolean;
 
   user?: {
     _id: string;
@@ -31,6 +37,28 @@ interface Application {
     totalBookings?: number;
     successfulBookings?: number;
     totalServices?: number;
+  };
+
+  requestedUser?: {
+    _id: string;
+    name: string;
+    email: string;
+    mobile?: string;
+    city?: string;
+    profile_image?: string;
+  };
+
+  requestedByExclusive?: {
+    _id: string;
+    name: string;
+    email: string;
+    ambassadorCode: string;
+
+    territory?: {
+      _id: string;
+      city: string;
+      country: string;
+    };
   };
 }
 
@@ -71,10 +99,13 @@ const AmbassadorApplications = () => {
   const [parentAmbassadorId, setParentAmbassadorId] = useState("");
 
   const getApplicantName = (application: Application) =>
-    application.user?.name || "-";
-
+    application.applicationType === "exclusive_request"
+      ? application.requestedUser?.name || "-"
+      : application.user?.name || "-";
   const getApplicantEmail = (application: Application) =>
-    application.user?.email || "-";
+    application.applicationType === "exclusive_request"
+      ? application.requestedUser?.email || "-"
+      : application.user?.email || "-";
 
   const getStatusClass = (status: string) => {
     switch (status?.toLowerCase()) {
@@ -116,7 +147,11 @@ const AmbassadorApplications = () => {
   const openApproveModal = (application: Application) => {
     setSelectedApplication(application);
 
-    setAmbassadorType("standard");
+    setAmbassadorType(
+      application.applicationType === "exclusive_request"
+        ? "standard"
+        : "standard",
+    );
     setCommissionRate(3);
     setTerritoryId("");
     setParentAmbassadorId("");
@@ -133,10 +168,18 @@ const AmbassadorApplications = () => {
         {
           ambassadorType,
           commissionRate,
-          territoryId: ambassadorType === "exclusive" ? territoryId : undefined,
+
+          territoryId:
+            selectedApplication.applicationType === "self" &&
+            ambassadorType === "exclusive"
+              ? territoryId
+              : undefined,
 
           parentAmbassadorId:
-            ambassadorType === "standard" ? parentAmbassadorId : undefined,
+            selectedApplication.applicationType === "self" &&
+            ambassadorType === "standard"
+              ? parentAmbassadorId
+              : undefined,
         },
         token,
       );
@@ -197,7 +240,7 @@ const AmbassadorApplications = () => {
                     {" "}
                     Requested Territory
                   </th>
-
+                  <th className="border-b px-4 py-3 font-semibold">Type</th>
                   <th className="border-b px-4 py-3 font-semibold">
                     Applied On
                   </th>
@@ -210,124 +253,172 @@ const AmbassadorApplications = () => {
 
               <tbody>
                 {applications.length > 0 ? (
-                  applications.map((application) => (
-                    <tr
-                      key={application._id}
-                      className="border-b last:border-b-0 hover:bg-gray-50"
-                    >
-                      {/* Applicant */}
+                  applications.map((application) => {
+                    const applicant =
+                      application.applicationType === "exclusive_request"
+                        ? application.requestedUser
+                        : application.user;
 
-                      <td className="px-4 py-4">
-                        <div className="flex items-center gap-3">
-                          <img
-                            src={
-                              application.user?.profile_image ||
-                              "/default-avatar.png"
-                            }
-                            alt=""
-                            className="h-12 w-12 rounded-full border object-cover"
-                          />
+                    return (
+                      <tr
+                        key={application._id}
+                        className="border-b last:border-b-0 hover:bg-gray-50"
+                      >
+                        {/* Applicant */}
 
+                        <td className="px-4 py-4">
+                          <div className="flex items-center gap-3">
+                            <img
+                              src={
+                                applicant?.profile_image ||
+                                "/default-avatar.png"
+                              }
+                              alt=""
+                              className="h-12 w-12 rounded-full border object-cover"
+                            />
+
+                            <div>
+                              <p className="font-semibold text-gray-900">
+                                {applicant?.name || "-"}
+                              </p>
+
+                              <p className="text-xs text-gray-500">
+                                ID: {applicant?._id?.slice(-6)}
+                              </p>
+                            </div>
+                          </div>
+                        </td>
+
+                        {/* Contact */}
+
+                        <td className="px-4 py-4">
                           <div>
-                            <p className="font-semibold text-gray-900">
-                              {application.user?.name || "-"}
+                            <p className="font-medium text-gray-800">
+                              {applicant?.email || "-"}
                             </p>
 
-                            <p className="text-xs text-gray-500">
-                              ID: {application.user?._id?.slice(-6)}
+                            <p className="text-sm text-gray-500">
+                              {applicant?.mobile || "-"}
                             </p>
                           </div>
-                        </div>
-                      </td>
+                        </td>
 
-                      {/* Contact */}
+                        {/* Profession */}
 
-                      <td className="px-4 py-4">
-                        <div>
-                          <p className="font-medium text-gray-800">
-                            {application.user?.email}
-                          </p>
-
-                          <p className="text-sm text-gray-500">
-                            {application.user?.mobile || "-"}
-                          </p>
-                        </div>
-                      </td>
-
-                      {/* Profession */}
-
-                      <td className="px-4 py-4">
-                        <span className="block max-w-[220px] truncate">
-                          {application.profession || "-"}
-                        </span>
-                      </td>
-
-                      {/* Requested Territory */}
-
-                      <td className="px-4 py-4">
-                        <div>
-                          <p className="font-medium">
-                            {application.city || "-"}
-                          </p>
-                        </div>
-                      </td>
-
-                      {/* Applied Date */}
-
-                      <td className="px-4 py-4 text-sm text-gray-600">
-                        {new Date(application.created_at).toLocaleDateString()}
-                      </td>
-
-                      {/* Status */}
-
-                      <td className="px-4 py-4">
-                        <span
-                          className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold capitalize ${getStatusClass(
-                            application.status,
-                          )}`}
-                        >
-                          {application.status}
-                        </span>
-                      </td>
-
-                      {/* Actions */}
-
-                      <td className="px-4 py-4">
-                        <div className="flex flex-wrap gap-2">
-                          <button
-                            onClick={() => openDetailsModal(application)}
-                            className="rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700"
-                          >
-                            View
-                          </button>
-
-                          {application.status === "pending" && (
-                            <>
-                              <button
-                                onClick={() => openApproveModal(application)}
-                                className="rounded-lg bg-green-600 px-3 py-2 text-sm font-medium text-white hover:bg-green-700"
-                              >
-                                Approve
-                              </button>
-
-                              <button
-                                onClick={() => handleReject(application._id)}
-                                className="rounded-lg bg-red-600 px-3 py-2 text-sm font-medium text-white hover:bg-red-700"
-                              >
-                                Reject
-                              </button>
-                            </>
+                        <td className="px-4 py-4">
+                          {application.applicationType === "self" ? (
+                            <span className="block max-w-[220px] truncate">
+                              {application.profession || "-"}
+                            </span>
+                          ) : (
+                            <span className="rounded bg-blue-100 px-2 py-1 text-xs font-medium text-blue-700">
+                              Standard Ambassador Request
+                            </span>
                           )}
-                        </div>
-                      </td>
-                    </tr>
-                  ))
+                        </td>
+
+                        {/* Territory */}
+
+                        <td className="px-4 py-4">
+                          {application.applicationType ===
+                          "exclusive_request" ? (
+                            <div>
+                              <p className="font-medium">
+                                {application.requestedByExclusive?.territory
+                                  ?.city || "-"}
+                              </p>
+
+                              <p className="text-xs text-gray-500">
+                                {application.requestedByExclusive?.territory
+                                  ?.country || ""}
+                              </p>
+                            </div>
+                          ) : (
+                            <div>
+                              <p className="font-medium">
+                                {application.city || "-"}
+                              </p>
+                            </div>
+                          )}
+                        </td>
+
+                        {/* Type */}
+
+                        <td className="px-4 py-4">
+                          <span
+                            className={`rounded-full px-2 py-1 text-xs font-semibold ${
+                              application.applicationType ===
+                              "exclusive_request"
+                                ? "bg-purple-100 text-purple-700"
+                                : "bg-gray-100 text-gray-700"
+                            }`}
+                          >
+                            {application.applicationType === "exclusive_request"
+                              ? "Exclusive Request"
+                              : "Self"}
+                          </span>
+                        </td>
+
+                        {/* Applied Date */}
+
+                        <td className="px-4 py-4 text-sm text-gray-600">
+                          {new Date(
+                            application.created_at,
+                          ).toLocaleDateString()}
+                        </td>
+
+                        {/* Status */}
+
+                        <td className="px-4 py-4">
+                          <span
+                            className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold capitalize ${getStatusClass(
+                              application.status,
+                            )}`}
+                          >
+                            {application.status}
+                          </span>
+                        </td>
+
+                        {/* Actions */}
+
+                        <td className="px-4 py-4">
+                          <div className="flex flex-wrap gap-2">
+                            <button
+                              onClick={() => openDetailsModal(application)}
+                              className="rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700"
+                            >
+                              View
+                            </button>
+
+                            {application.status === "pending" && (
+                              <>
+                                <button
+                                  onClick={() => openApproveModal(application)}
+                                  className="rounded-lg bg-green-600 px-3 py-2 text-sm font-medium text-white hover:bg-green-700"
+                                >
+                                  Approve
+                                </button>
+
+                                <button
+                                  onClick={() => handleReject(application._id)}
+                                  className="rounded-lg bg-red-600 px-3 py-2 text-sm font-medium text-white hover:bg-red-700"
+                                >
+                                  Reject
+                                </button>
+                              </>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })
                 ) : (
                   <tr>
-                    <td colSpan={7} className="px-4 py-10 text-center">
+                    <td colSpan={8} className="px-4 py-10 text-center">
                       <div className="font-medium text-gray-700">
                         No applications found
                       </div>
+
                       <div className="mt-1 text-sm text-gray-500">
                         New ambassador applications will appear here.
                       </div>
@@ -370,7 +461,9 @@ const AmbassadorApplications = () => {
                         City
                       </p>
                       <p className="mt-1 font-medium text-gray-800">
-                        {application.user?.city || "-"}
+                        {application.applicationType === "exclusive_request"
+                          ? application.requestedByExclusive?.territory?.city
+                          : application.user?.city || "-"}
                       </p>
                     </div>
 
@@ -380,7 +473,9 @@ const AmbassadorApplications = () => {
                           Phone
                         </p>
                         <p className="mt-1 font-medium text-gray-800">
-                          {application.user?.mobile}
+                          {application.applicationType === "exclusive_request"
+                            ? application.requestedUser?.mobile
+                            : application.user?.mobile}
                         </p>
                       </div>
                     )}
@@ -418,158 +513,248 @@ const AmbassadorApplications = () => {
           </div>
         </div>
       </div>
-      {showDetailsModal && selectedDetails && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="max-h-[95vh] w-full max-w-5xl overflow-y-auto rounded-2xl bg-white shadow-xl">
-            <div className="border-b p-6">
-              <h2 className="text-2xl font-bold">
-                Ambassador Application Review
-              </h2>
-            </div>
+      {showDetailsModal &&
+        selectedDetails &&
+        (() => {
+          const detailApplicant =
+            selectedDetails.applicationType === "exclusive_request"
+              ? selectedDetails.requestedUser
+              : selectedDetails.user;
 
-            <div className="p-6">
-              {/* PROFILE */}
-
-              <div className="mb-6 flex flex-col gap-5 md:flex-row">
-                <img
-                  src={
-                    selectedDetails.user?.profile_image || "/default-avatar.png"
-                  }
-                  alt=""
-                  className="h-28 w-28 rounded-full border object-cover"
-                />
-
-                <div className="grid flex-1 grid-cols-1 gap-4 md:grid-cols-2">
-                  <div>
-                    <p className="text-sm text-gray-500">Name</p>
-                    <p className="font-semibold">
-                      {selectedDetails.user?.name}
-                    </p>
-                  </div>
-
-                  <div>
-                    <p className="text-sm text-gray-500">Email</p>
-                    <p className="font-semibold">
-                      {selectedDetails.user?.email}
-                    </p>
-                  </div>
-
-                  <div>
-                    <p className="text-sm text-gray-500">Mobile</p>
-                    <p className="font-semibold">
-                      {selectedDetails.user?.mobile || "-"}
-                    </p>
-                  </div>
-
-                  <div>
-                    <p className="text-sm text-gray-500">City</p>
-                    <p className="font-semibold">
-                      {selectedDetails.user?.city || "-"}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* STATS */}
-
-              <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-3">
-                <div className="rounded-xl border p-5">
-                  <p className="text-gray-500">Total Services</p>
-                  <h3 className="text-3xl font-bold">
-                    {selectedDetails.user?.totalServices || 0}
-                  </h3>
+          return (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+              <div className="max-h-[95vh] w-full max-w-5xl overflow-y-auto rounded-2xl bg-white shadow-xl">
+                <div className="border-b p-6">
+                  <h2 className="text-2xl font-bold">
+                    Ambassador Application Review
+                  </h2>
                 </div>
 
-                <div className="rounded-xl border p-5">
-                  <p className="text-gray-500">Total Bookings</p>
-                  <h3 className="text-3xl font-bold">
-                    {selectedDetails.user?.totalBookings || 0}
-                  </h3>
-                </div>
+                <div className="p-6">
+                  {/* PROFILE */}
 
-                <div className="rounded-xl border p-5">
-                  <p className="text-gray-500">Successful Bookings</p>
-                  <h3 className="text-3xl font-bold">
-                    {selectedDetails.user?.successfulBookings || 0}
-                  </h3>
-                </div>
-              </div>
+                  <div className="mb-6 flex flex-col gap-5 md:flex-row">
+                    <img
+                      src={
+                        detailApplicant?.profile_image || "/default-avatar.png"
+                      }
+                      alt=""
+                      className="h-28 w-28 rounded-full border object-cover"
+                    />
 
-              {/* APPLICATION */}
+                    <div className="grid flex-1 grid-cols-1 gap-4 md:grid-cols-2">
+                      <div>
+                        <p className="text-sm text-gray-500">Name</p>
+                        <p className="font-semibold">
+                          {detailApplicant?.name || "-"}
+                        </p>
+                      </div>
 
-              <div className="space-y-5">
-                <div>
-                  <h3 className="font-semibold mb-2">Profession</h3>
-                  <div className="rounded-lg bg-gray-50 p-4">
-                    {selectedDetails.profession || "-"}
+                      <div>
+                        <p className="text-sm text-gray-500">Email</p>
+                        <p className="font-semibold">
+                          {detailApplicant?.email || "-"}
+                        </p>
+                      </div>
+
+                      <div>
+                        <p className="text-sm text-gray-500">Mobile</p>
+                        <p className="font-semibold">
+                          {detailApplicant?.mobile || "-"}
+                        </p>
+                      </div>
+
+                      <div>
+                        <p className="text-sm text-gray-500">City</p>
+                        <p className="font-semibold">
+                          {detailApplicant?.city || "-"}
+                        </p>
+                      </div>
+                    </div>
                   </div>
-                </div>
 
-                <div>
-                  <h3 className="font-semibold mb-2">Target Audience</h3>
-                  <div className="rounded-lg bg-gray-50 p-4">
-                    {selectedDetails.targetAudience || "-"}
+                  {/* TYPE */}
+
+                  <div className="mb-6">
+                    <span
+                      className={`rounded-full px-3 py-1 text-sm font-semibold ${
+                        selectedDetails.applicationType === "exclusive_request"
+                          ? "bg-purple-100 text-purple-700"
+                          : "bg-blue-100 text-blue-700"
+                      }`}
+                    >
+                      {selectedDetails.applicationType === "exclusive_request"
+                        ? "Exclusive Ambassador Request"
+                        : "Self Ambassador Application"}
+                    </span>
                   </div>
-                </div>
 
-                <div>
-                  <h3 className="font-semibold mb-2">Why Become Ambassador?</h3>
-                  <div className="rounded-lg bg-gray-50 p-4">
-                    {selectedDetails.whyBecomeAmbassador || "-"}
-                  </div>
-                </div>
+                  {/* STATS */}
 
-                <div>
-                  <h3 className="font-semibold mb-2">
-                    How Will Promote BeTogether?
-                  </h3>
-                  <div className="rounded-lg bg-gray-50 p-4">
-                    {selectedDetails.howPromoteBetogether || "-"}
-                  </div>
-                </div>
-              </div>
+                  {selectedDetails.applicationType === "self" && (
+                    <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-3">
+                      <div className="rounded-xl border p-5">
+                        <p className="text-gray-500">Total Services</p>
+                        <h3 className="text-3xl font-bold">
+                          {detailApplicant?.totalServices || 0}
+                        </h3>
+                      </div>
 
-              {/* SOCIAL LINKS */}
+                      <div className="rounded-xl border p-5">
+                        <p className="text-gray-500">Total Bookings</p>
+                        <h3 className="text-3xl font-bold">
+                          {detailApplicant?.totalBookings || 0}
+                        </h3>
+                      </div>
 
-              <div className="mt-6">
-                <h3 className="font-semibold mb-3">Social Media Links</h3>
+                      <div className="rounded-xl border p-5">
+                        <p className="text-gray-500">Successful Bookings</p>
+                        <h3 className="text-3xl font-bold">
+                          {detailApplicant?.successfulBookings || 0}
+                        </h3>
+                      </div>
+                    </div>
+                  )}
 
-                <div className="flex flex-wrap gap-2">
-                  {selectedDetails.socialMediaUrls?.map(
-                    (url: string, index: number) => (
-                      <a
-                        key={index}
-                        href={url}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="rounded bg-blue-100 px-3 py-2 text-blue-700"
-                      >
-                        Link {index + 1}
-                      </a>
-                    ),
+                  {/* EXCLUSIVE REQUEST DETAILS */}
+
+                  {selectedDetails.applicationType === "exclusive_request" && (
+                    <div className="mb-6 rounded-xl border bg-gray-50 p-5">
+                      <h3 className="mb-4 text-lg font-semibold">
+                        Request Submitted By Exclusive Ambassador
+                      </h3>
+
+                      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                        <div>
+                          <p className="text-sm text-gray-500">Requested By</p>
+                          <p className="font-semibold">
+                            {selectedDetails.requestedByExclusive?.name || "-"}
+                          </p>
+                        </div>
+
+                        <div>
+                          <p className="text-sm text-gray-500">
+                            Ambassador Code
+                          </p>
+                          <p className="font-semibold">
+                            {selectedDetails.requestedByExclusive
+                              ?.ambassadorCode || "-"}
+                          </p>
+                        </div>
+
+                        <div>
+                          <p className="text-sm text-gray-500">Territory</p>
+                          <p className="font-semibold">
+                            {
+                              selectedDetails.requestedByExclusive?.territory
+                                ?.city
+                            }{" "}
+                            (
+                            {
+                              selectedDetails.requestedByExclusive?.territory
+                                ?.country
+                            }
+                            )
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* SELF APPLICATION */}
+
+                  {selectedDetails.applicationType === "self" && (
+                    <>
+                      <div className="space-y-5">
+                        <div>
+                          <h3 className="mb-2 font-semibold">Profession</h3>
+
+                          <div className="rounded-lg bg-gray-50 p-4">
+                            {selectedDetails.profession || "-"}
+                          </div>
+                        </div>
+
+                        <div>
+                          <h3 className="mb-2 font-semibold">
+                            Target Audience
+                          </h3>
+
+                          <div className="rounded-lg bg-gray-50 p-4">
+                            {selectedDetails.targetAudience || "-"}
+                          </div>
+                        </div>
+
+                        <div>
+                          <h3 className="mb-2 font-semibold">
+                            Why Become Ambassador?
+                          </h3>
+
+                          <div className="rounded-lg bg-gray-50 p-4">
+                            {selectedDetails.whyBecomeAmbassador || "-"}
+                          </div>
+                        </div>
+
+                        <div>
+                          <h3 className="mb-2 font-semibold">
+                            How Will Promote BeTogether?
+                          </h3>
+
+                          <div className="rounded-lg bg-gray-50 p-4">
+                            {selectedDetails.howPromoteBetogether || "-"}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="mt-6">
+                        <h3 className="mb-3 font-semibold">
+                          Social Media Links
+                        </h3>
+
+                        <div className="flex flex-wrap gap-2">
+                          {selectedDetails.socialMediaUrls?.length ? (
+                            selectedDetails.socialMediaUrls.map(
+                              (url: string, index: number) => (
+                                <a
+                                  key={index}
+                                  href={url}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="rounded bg-blue-100 px-3 py-2 text-blue-700"
+                                >
+                                  Link {index + 1}
+                                </a>
+                              ),
+                            )
+                          ) : (
+                            <span>No Links</span>
+                          )}
+                        </div>
+                      </div>
+                    </>
                   )}
                 </div>
+
+                <div className="flex justify-end border-t p-6">
+                  <button
+                    onClick={() => setShowDetailsModal(false)}
+                    className="rounded border px-4 py-2"
+                  >
+                    Close
+                  </button>
+                </div>
               </div>
             </div>
-
-            <div className="flex justify-end border-t p-6">
-              <button
-                onClick={() => setShowDetailsModal(false)}
-                className="rounded border px-4 py-2"
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+          );
+        })()}
 
       {showApproveModal && (
         <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-3 sm:items-center sm:p-4">
           <div className="max-h-[92vh] w-full max-w-lg overflow-y-auto rounded-lg bg-white p-4 shadow-xl sm:p-6">
             <div className="mb-4">
               <h2 className="text-lg font-semibold text-gray-900 sm:text-xl">
-                Approve Ambassador
+                {selectedApplication?.applicationType === "exclusive_request"
+                  ? "Approve Standard Ambassador Request"
+                  : "Approve Ambassador"}
               </h2>
               {selectedApplication && (
                 <p className="mt-1 truncate text-sm text-gray-500">
@@ -584,15 +769,23 @@ const AmbassadorApplications = () => {
                   Ambassador Type
                 </label>
 
-                <select
-                  value={ambassadorType}
-                  onChange={(e) => setAmbassadorType(e.target.value as any)}
-                  className="w-full rounded-md border border-gray-300 p-2.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100"
-                >
-                  <option value="standard">Standard</option>
-
-                  <option value="exclusive">Exclusive</option>
-                </select>
+                {selectedApplication?.applicationType ===
+                "exclusive_request" ? (
+                  <input
+                    value="Standard Ambassador"
+                    disabled
+                    className="w-full rounded-md border bg-gray-100 p-2.5"
+                  />
+                ) : (
+                  <select
+                    value={ambassadorType}
+                    onChange={(e) => setAmbassadorType(e.target.value as any)}
+                    className="w-full rounded-md border border-gray-300 p-2.5"
+                  >
+                    <option value="standard">Standard</option>
+                    <option value="exclusive">Exclusive</option>
+                  </select>
+                )}
               </div>
 
               <div>
@@ -608,51 +801,55 @@ const AmbassadorApplications = () => {
                 />
               </div>
 
-              {ambassadorType === "exclusive" && (
-                <div>
-                  <label className="mb-1.5 block text-sm font-medium text-gray-700">
-                    Territory
-                  </label>
+              {ambassadorType === "exclusive" &&
+                selectedApplication?.applicationType !==
+                  "exclusive_request" && (
+                  <div>
+                    <label className="mb-1.5 block text-sm font-medium text-gray-700">
+                      Territory
+                    </label>
 
-                  <select
-                    value={territoryId}
-                    onChange={(e) => setTerritoryId(e.target.value)}
-                    className="w-full rounded-md border border-gray-300 p-2.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100"
-                  >
-                    <option value="">Select Territory</option>
+                    <select
+                      value={territoryId}
+                      onChange={(e) => setTerritoryId(e.target.value)}
+                      className="w-full rounded-md border border-gray-300 p-2.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100"
+                    >
+                      <option value="">Select Territory</option>
 
-                    {territories.map((territory) => (
-                      <option key={territory._id} value={territory._id}>
-                        {territory.city} ({territory.country})
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              )}
-
-              {ambassadorType === "standard" && (
-                <div>
-                  <label className="mb-1.5 block text-sm font-medium text-gray-700">
-                    Parent Ambassador
-                  </label>
-
-                  <select
-                    value={parentAmbassadorId}
-                    onChange={(e) => setParentAmbassadorId(e.target.value)}
-                    className="w-full rounded-md border border-gray-300 p-2.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100"
-                  >
-                    <option value="">Select Parent</option>
-
-                    {ambassadors
-                      .filter((a) => a.ambassadorType === "exclusive")
-                      .map((a) => (
-                        <option key={a._id} value={a._id}>
-                          {a.name}
+                      {territories.map((territory) => (
+                        <option key={territory._id} value={territory._id}>
+                          {territory.city} ({territory.country})
                         </option>
                       ))}
-                  </select>
-                </div>
-              )}
+                    </select>
+                  </div>
+                )}
+
+              {ambassadorType === "standard" &&
+                selectedApplication?.applicationType !==
+                  "exclusive_request" && (
+                  <div>
+                    <label className="mb-1.5 block text-sm font-medium text-gray-700">
+                      Parent Ambassador
+                    </label>
+
+                    <select
+                      value={parentAmbassadorId}
+                      onChange={(e) => setParentAmbassadorId(e.target.value)}
+                      className="w-full rounded-md border border-gray-300 p-2.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100"
+                    >
+                      <option value="">Select Parent</option>
+
+                      {ambassadors
+                        .filter((a) => a.ambassadorType === "exclusive")
+                        .map((a) => (
+                          <option key={a._id} value={a._id}>
+                            {a.name}
+                          </option>
+                        ))}
+                    </select>
+                  </div>
+                )}
             </div>
 
             <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2 sm:justify-end">
