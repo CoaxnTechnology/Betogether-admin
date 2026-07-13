@@ -188,20 +188,7 @@ const AmbassadorDetails = () => {
             </div>
           </div>
 
-          <div className="mt-6">
-            <p className="mb-2">KPI Progress</p>
-
-            <div className="w-full bg-gray-200 rounded-full h-4">
-              <div
-                className="bg-green-500 h-4 rounded-full"
-                style={{
-                  width: `${analytics?.kpiProgress || 0}%`,
-                }}
-              />
-            </div>
-
-            <p className="mt-2">{analytics?.kpiProgress || 0}% Completed</p>
-          </div>
+          
         </div>
       )}
 
