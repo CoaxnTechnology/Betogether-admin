@@ -37,7 +37,9 @@ export const Header: FC = () => {
       console.error("Delete count fetch error:", err);
     }
   };
+
   console.log("Delete count:", deleteCount);
+
   useEffect(() => {
     fetchDeleteCount();
 
@@ -53,13 +55,12 @@ export const Header: FC = () => {
 
     return () => {
       clearInterval(interval);
-
       window.removeEventListener("deleteRequestUpdated", refreshHandler);
     };
   }, []);
 
   const handleNotificationClick = () => {
-    navigate("/request"); // <-- apna route yaha lagana
+    navigate("/request");
   };
 
   const handleLogout = () => {
@@ -169,7 +170,10 @@ export const Header: FC = () => {
 
               <DropdownMenuSeparator />
 
-              <DropdownMenuItem className="text-red-600" onClick={handleLogout}>
+              <DropdownMenuItem
+                className="text-red-600"
+                onClick={handleLogout}
+              >
                 Log out
               </DropdownMenuItem>
             </DropdownMenuContent>

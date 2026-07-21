@@ -35,8 +35,8 @@ const PaymentSettings = () => {
       setLoading(true);
 
       const [commissionRes, cancelRes] = await Promise.all([
-        axios.get("https://uat.api.betogetherapp.com/api/admin/commission"),
-        axios.get("https://uat.api.betogetherapp.com/api/admin/cancellation"),
+        axios.get("https://api.betogetherapp.com/api/admin/commission"),
+        axios.get("https://api.betogetherapp.com/api/admin/cancellation"),
       ]);
 
       const providerValue =
@@ -72,7 +72,9 @@ const PaymentSettings = () => {
       setPaymentLoading(true);
 
       const res = await axios.get(
-        `https://uat.api.betogetherapp.com/api/admin/payment?page=${pageNumber}&limit=${limit}`,
+
+        `https://api.betogetherapp.com/api/admin/payment?page=${pageNumber}&limit=${limit}`
+
       );
 
       setPayments(res.data.data || []);
@@ -93,7 +95,7 @@ const PaymentSettings = () => {
   const handleCommissionSave = async () => {
     try {
       await axios.put(
-        "https://uat.api.betogetherapp.com/api/admin/commission",
+        "https://api.betogetherapp.com/api/admin/commission",
         {
           providerCommissionPercentage: Number(providerCommission),
 
@@ -110,7 +112,7 @@ const PaymentSettings = () => {
   const handleCancellationSave = async () => {
     try {
       await axios.put(
-        "https://uat.api.betogetherapp.com/api/admin/cancellation",
+        "https://api.betogetherapp.com/api/admin/cancellation",
         {
           enabled: cancellationEnabled,
           percentage: cancellationEnabled

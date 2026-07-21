@@ -1,13 +1,17 @@
 #!/bin/bash
 
-echo "🚀 FRONTEND UAT DEPLOY STARTED: $(date)"
+echo "🚀 FRONTEND PROD DEPLOY STARTED: $(date)"
 
-cd /var/www/frontend-uat-admin || exit 1
+cd /var/www/frontend-prod-admin || exit 1
 
-echo "🧹 Resetting local changes..."
+echo "📦 Fetching latest code..."
 git fetch origin
-git reset --hard origin/testing
-git clean -fd
+
+echo "🔁 Resetting to origin/main (SAFE)"
+git reset --hard origin/main
+
+# ❗ NO git clean here (safe for prod)
+# git clean -fd  ❌ NOT for production
 
 echo "📦 Installing dependencies..."
 npm install --silent
@@ -18,4 +22,4 @@ npm run build
 echo "🔁 Reloading nginx..."
 sudo systemctl reload nginx
 
-echo "✅ FRONTEND UAT DEPLOY COMPLETED"
+echo "✅ FRONTEND PROD DEPLOY COMPLETED"

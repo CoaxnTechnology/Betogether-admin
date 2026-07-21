@@ -30,7 +30,7 @@ type DeleteRequest = {
   };
 };
 
-const API_BASE = "https://uat.api.betogetherapp.com/api/service";
+const API_BASE = "https://api.betogetherapp.com/api/service";
 
 const Request: React.FC = () => {
   const [requests, setRequests] = useState<DeleteRequest[]>([]);

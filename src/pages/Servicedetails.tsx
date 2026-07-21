@@ -3,7 +3,6 @@ import { useParams, useNavigate } from "react-router-dom";
 import axios from "../API/baseUrl";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-
 interface RecurringItem {
   _id: string;
   day: string;
@@ -65,14 +64,26 @@ const ServiceDetails: React.FC = () => {
       </p>
     );
 
-  const formatDate = (dateString: string | null | undefined) => {
+  const formatDate = (dateString?: string | null) => {
     if (!dateString) return "-";
-    const date = new Date(dateString);
+
+    const date = new Date(dateString + "T00:00:00");
+
+    if (isNaN(date.getTime())) return "-";
+
     return `${String(date.getDate()).padStart(2, "0")}-${String(
-      date.getMonth() + 1
+      date.getMonth() + 1,
     ).padStart(2, "0")}-${date.getFullYear()}`;
   };
+  const formatDateTime = (dateString?: string | null) => {
+    if (!dateString) return "-";
 
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return "-";
+
+    return date.toLocaleString(); // auto correct
+  };
+  console.log("RAW DATE FROM API:", service.date);
   const infoItems = [
     { label: "Description", value: service.description || "-" },
     { label: "Category", value: service.category?.name || "-" },
@@ -85,26 +96,31 @@ const ServiceDetails: React.FC = () => {
       value: service.tags?.length ? service.tags.join(", ") : "-",
     },
     { label: "Service Type", value: service.service_type || "-" },
+    // ✅ Add date/time ONLY for one_time
+    ...(service.service_type === "one_time"
+      ? [
+          { label: "Date", value: formatDate(service.date) },
+          { label: "Start Time", value: service.start_time || "-" },
+          { label: "End Time", value: service.end_time || "-" },
+        ]
+      : []),
     { label: "Max Participants", value: service.max_participants || "-" },
     { label: "Location Name", value: service.location_name || "-" },
-    {
-      label: "Created At",
-      value: new Date(service.created_at).toLocaleString(),
-    },
+    { label: "Created At", value: formatDateTime(service.created_at) },
   ];
 
   // For non-recurring, add date/time fields
-  if (service.service_type !== "recurring") {
-    infoItems.splice(8, 0, { label: "Date", value: formatDate(service.date) });
-    infoItems.splice(9, 0, {
-      label: "Start Time",
-      value: service.start_time || "-",
-    });
-    infoItems.splice(10, 0, {
-      label: "End Time",
-      value: service.end_time || "-",
-    });
-  }
+  // if (service.service_type !== "recurring") {
+  //   infoItems.splice(8, 0, { label: "Date", value: formatDate(service.date) });
+  //   infoItems.splice(9, 0, {
+  //     label: "Start Time",
+  //     value: service.start_time || "-",
+  //   });
+  //   infoItems.splice(10, 0, {
+  //     label: "End Time",
+  //     value: service.end_time || "-",
+  //   });
+  // }
 
   return (
     <div className="max-w-4xl mx-auto mt-10 px-4 pb-10">
