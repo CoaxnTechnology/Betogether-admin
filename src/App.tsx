@@ -24,6 +24,13 @@ import Profile from "./pages/Profile";
 import PromotionPlan from "./pages/Promotionplan";
 import ResetPassword from "./pages/reset-password";
 import ReportServicePage from "./pages/ReportServicePage";
+import WalletConfigPage from "./pages/WalletConfigPage";
+import DeletedAccounts from "./pages/DeletedAccounts";
+import DeletedAccountDetails from "./pages/DeletedAccountDetails";
+import TerritoryManagement from "./pages/TerritoryManagement";
+import AmbassadorApplications from "./pages/AmbassadorApplications";
+import Ambassadors from "./pages/Ambassadors";
+import AmbassadorDetails from "./pages/AmbassadorDetails";
 const queryClient = new QueryClient();
 
 function App() {
@@ -193,6 +200,76 @@ function App() {
                 <ProtectedRoute>
                   <Layout>
                     <ReportServicePage />
+                  </Layout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/wallet-config"
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <WalletConfigPage />
+                  </Layout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/deleted-accounts"
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <DeletedAccounts />
+                  </Layout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/territories"
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <TerritoryManagement />
+                  </Layout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/deleted-accounts/:backupId"
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <DeletedAccountDetails />
+                  </Layout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/ambassador-applications"
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <AmbassadorApplications />
+                  </Layout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/ambassadors"
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <Ambassadors />
+                  </Layout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/ambassadors/:id"
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <AmbassadorDetails />
                   </Layout>
                 </ProtectedRoute>
               }

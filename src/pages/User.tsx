@@ -6,7 +6,12 @@ import axios from "../API/baseUrl"; // ✅ your axios instance
 import { Button } from "@/components/ui/button";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-
+import {
+  makeAmbassador,
+  removeAmbassador,
+  getAllAmbassadors,
+} from "../API/ambassadorApi";
+import { getTerritories } from "../API/territoryApi";
 interface UserType {
   _id: string;
   name?: string;
@@ -15,13 +20,47 @@ interface UserType {
   status?: string;
   profile_image?: string | null;
   created_at?: string;
+  isAmbassador?: boolean;
+  ambassadorStatus?: string;
+}
+interface Territory {
+  _id: string;
+  city: string;
+  country: string;
+}
+
+interface Ambassador {
+  _id: string;
+  name: string;
+  ambassadorType: string;
 }
 
 export default function User() {
   const navigate = useNavigate();
   const [users, setUsers] = useState<UserType[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showAmbassadorModal, setShowAmbassadorModal] = useState(false);
 
+  const [selectedUser, setSelectedUser] = useState<UserType | null>(null);
+
+  const [ambassadorType, setAmbassadorType] = useState<
+    "standard" | "exclusive"
+  >("standard");
+
+  const [commissionRate, setCommissionRate] = useState(3);
+  const [showRemoveModal, setShowRemoveModal] = useState(false);
+
+  const [removeErrorMessage, setRemoveErrorMessage] = useState("");
+
+  const [selectedAmbassador, setSelectedAmbassador] = useState<UserType | null>(
+    null,
+  );
+  const [territoryId, setTerritoryId] = useState("");
+
+  const [parentAmbassadorId, setParentAmbassadorId] = useState("");
+  const [territories, setTerritories] = useState<Territory[]>([]);
+
+  const [ambassadors, setAmbassadors] = useState<Ambassador[]>([]);
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const [recordsPerPage, setRecordsPerPage] = useState(10);
@@ -29,13 +68,30 @@ export default function User() {
   // Helper to safely display field values
   const displayValue = (val?: string | null) =>
     val && val.trim() !== "" && val !== "null" ? val : "N/A";
+  const loadDropdownData = async () => {
+    try {
+      const token = localStorage.getItem("adminToken");
 
+      if (!token) return;
+
+      const territoryRes = await getTerritories(token);
+
+      setTerritories(territoryRes.data?.territories || []);
+
+      const ambassadorRes = await getAllAmbassadors(token);
+
+      setAmbassadors(ambassadorRes.data?.ambassadors || []);
+    } catch (err) {
+      console.log(err);
+    }
+  };
   // Fetch users from API
   useEffect(() => {
     const fetchUsers = async () => {
       try {
         setLoading(true);
         const res = await axios.get("/alluser");
+        console.log(res);
         if (res.data.success) {
           setUsers(res.data.data);
           toast.success("Users fetched successfully");
@@ -52,6 +108,7 @@ export default function User() {
     };
 
     fetchUsers();
+    loadDropdownData();
   }, []);
 
   // Pagination logic
@@ -118,10 +175,44 @@ export default function User() {
         toast.error(res.data.message || "Action failed");
       }
     } catch (err: any) {
-      console.error("Toggle user error:", err);
+      const message =
+        err?.response?.data?.message || "Unable to remove ambassador";
+
+      setRemoveErrorMessage(message);
+
+      setShowRemoveModal(true);
+    }
+  };
+  const handleToggleAmbassador = async (user: UserType) => {
+    try {
+      const token = localStorage.getItem("adminToken");
+
+      if (!token) {
+        toast.error("Admin token missing");
+        return;
+      }
+
+      const response = await removeAmbassador(user._id, token);
+
+      if (response.data.isSuccess) {
+        toast.success("Ambassador removed");
+
+        setUsers((prev) =>
+          prev.map((u) =>
+            u._id === user._id
+              ? {
+                  ...u,
+                  isAmbassador: false,
+                }
+              : u,
+          ),
+        );
+      }
+    } catch (err: any) {
       toast.error(err?.response?.data?.message || "Something went wrong");
     }
   };
+
   const handleClearSearch = async () => {
     try {
       setSearch(""); // input empty
@@ -138,6 +229,54 @@ export default function User() {
       toast.error("Failed to reset list");
     } finally {
       setLoading(false);
+    }
+  };
+  const handleCreateAmbassador = async () => {
+    try {
+      const token = localStorage.getItem("adminToken");
+
+      if (!selectedUser || !token) return;
+      if (ambassadorType === "exclusive" && !territoryId) {
+        toast.error("Please select territory");
+        return;
+      }
+
+      if (ambassadorType === "standard" && !parentAmbassadorId) {
+        toast.error("Please select parent ambassador");
+        return;
+      }
+      const payload = {
+        ambassadorType,
+        commissionRate,
+
+        territoryId: ambassadorType === "exclusive" ? territoryId : undefined,
+
+        parentAmbassadorId:
+          ambassadorType === "standard" ? parentAmbassadorId : undefined,
+      };
+
+      const res = await makeAmbassador(selectedUser._id, payload, token);
+
+      if (res.data.isSuccess) {
+        toast.success("Ambassador created");
+
+        setShowAmbassadorModal(false);
+
+        setShowAmbassadorModal(false);
+
+        setUsers((prev) =>
+          prev.map((u) =>
+            u._id === selectedUser._id
+              ? {
+                  ...u,
+                  isAmbassador: true,
+                }
+              : u,
+          ),
+        );
+      }
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || "Failed");
     }
   };
   // Loader overlay
@@ -233,6 +372,10 @@ export default function User() {
                 <th className="p-2 border">Email</th>
                 <th className="p-2 border">Mobile</th>
                 <th className="p-2 border">Status</th>
+
+                {/* NEW COLUMN */}
+                <th className="p-2 border">Ambassador</th>
+
                 <th className="p-2 border">Created At</th>
                 <th className="p-2 border">Action</th>
               </tr>
@@ -267,6 +410,18 @@ export default function User() {
                       {displayValue(user.status)}
                     </span>
                   </td>
+
+                  <td className="p-2 border">
+                    {user.isAmbassador ? (
+                      <span className="px-2 py-1 bg-purple-100 text-purple-700 rounded text-xs font-semibold">
+                        Ambassador
+                      </span>
+                    ) : (
+                      <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs font-semibold">
+                        User
+                      </span>
+                    )}
+                  </td>
                   <td className="p-2 border">
                     {user.created_at
                       ? new Date(user.created_at).toLocaleDateString()
@@ -290,12 +445,114 @@ export default function User() {
                       >
                         {user.status === "banned" ? "Unblock" : "Block"}
                       </Button>
+                      <Button
+                        variant={user.isAmbassador ? "destructive" : "default"}
+                        onClick={() => {
+                          if (user.isAmbassador) {
+                            setSelectedAmbassador(user);
+                            handleToggleAmbassador(user);
+                          } else {
+                            setSelectedUser(user);
+                            setShowAmbassadorModal(true);
+                          }
+                        }}
+                      >
+                        {user.isAmbassador
+                          ? "Remove Ambassador"
+                          : "Make Ambassador"}
+                      </Button>
                     </div>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
+          {showAmbassadorModal && (
+            <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+              <div className="bg-white p-6 rounded-xl w-[500px]">
+                <h2 className="text-xl font-bold mb-4">Make Ambassador</h2>
+
+                <label>Ambassador Type</label>
+
+                <select
+                  value={ambassadorType}
+                  onChange={(e) => setAmbassadorType(e.target.value as any)}
+                  className="border p-2 w-full mb-3"
+                >
+                  <option value="standard">Standard</option>
+
+                  <option value="exclusive">Exclusive</option>
+                </select>
+
+                <label>Commission %</label>
+
+                <input
+                  type="number"
+                  value={commissionRate}
+                  onChange={(e) => setCommissionRate(Number(e.target.value))}
+                  className="border p-2 w-full mb-3"
+                />
+
+                {ambassadorType === "exclusive" && (
+                  <>
+                    <label>Territory</label>
+
+                    <select
+                      value={territoryId}
+                      onChange={(e) => setTerritoryId(e.target.value)}
+                      className="border p-2 w-full mb-3"
+                    >
+                      <option value="">Select Territory</option>
+
+                      {territories.map((t) => (
+                        <option key={t._id} value={t._id}>
+                          {t.city} ({t.country})
+                        </option>
+                      ))}
+                    </select>
+                  </>
+                )}
+
+                {ambassadorType === "standard" && (
+                  <>
+                    <label>Parent Ambassador</label>
+
+                    <select
+                      value={parentAmbassadorId}
+                      onChange={(e) => setParentAmbassadorId(e.target.value)}
+                      className="border p-2 w-full mb-3"
+                    >
+                      <option value="">None</option>
+
+                      {ambassadors
+                        .filter((a) => a.ambassadorType === "exclusive")
+                        .map((a) => (
+                          <option key={a._id} value={a._id}>
+                            {a.name}
+                          </option>
+                        ))}
+                    </select>
+                  </>
+                )}
+
+                <div className="flex justify-end gap-2">
+                  <button
+                    onClick={() => setShowAmbassadorModal(false)}
+                    className="border px-4 py-2 rounded"
+                  >
+                    Cancel
+                  </button>
+
+                  <button
+                    onClick={handleCreateAmbassador}
+                    className="bg-purple-600 text-white px-4 py-2 rounded"
+                  >
+                    Create Ambassador
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Pagination Controls */}
@@ -340,6 +597,26 @@ export default function User() {
           </div>
         </div>
       </div>
+      {showRemoveModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="w-[500px] rounded-xl bg-white p-6 shadow-xl">
+            <h2 className="mb-3 text-xl font-bold text-red-600">
+              Cannot Remove Ambassador
+            </h2>
+
+            <p className="mb-6 text-gray-600">{removeErrorMessage}</p>
+
+            <div className="flex justify-end">
+              <button
+                onClick={() => setShowRemoveModal(false)}
+                className="rounded-lg bg-blue-600 px-4 py-2 text-white"
+              >
+                OK
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -10,6 +10,9 @@ import {
   CreditCard,
   CalendarCheck,
   Megaphone,
+  UserRoundX,
+  Globe,
+  BadgeCheck,
 } from "lucide-react";
 
 import {
@@ -47,6 +50,28 @@ const navigationItems: NavItem[] = [
   { title: "Request", url: "/request", icon: Trash2 },
   { title: "Promotion", url: "/promotion", icon: Megaphone },
   { title: "Report-Service", url: "/report-service", icon: Flag },
+  { title: "Wallet Config", url: "/wallet-config", icon: Layers },
+  // NEW
+  {
+    title: "Deleted Accounts",
+    url: "/deleted-accounts",
+    icon: UserRoundX,
+  },
+  {
+    title: "Territories",
+    url: "/territories",
+    icon: Globe,
+  },
+  {
+    title: "Ambassador Applications",
+    url: "/ambassador-applications",
+    icon: BadgeCheck,
+  },
+  {
+    title: "Ambassadors",
+    url: "/ambassadors",
+    icon: Users,
+  },
 ];
 
 export function AppSidebar() {
