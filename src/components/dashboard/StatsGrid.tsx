@@ -222,7 +222,6 @@ export function StatsGrid() {
         <ChartCard title="SERVICES" data={chartData.services} />
         <ChartCard title="BOOKINGS" data={chartData.bookings} />
         <ChartCard title="Reviews" data={chartData.reviews} />
-        
       </div>
     </div>
   );
