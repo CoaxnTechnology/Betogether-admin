@@ -18,7 +18,7 @@ export function StatsGrid() {
       try {
         setLoading(true);
         const res = await axios.get(
-          "https://api.betogetherapp.com/api/stats"
+          "https://uat.api.betogetherapp.com/api/stats"
         );
         const data = res.data;
 
