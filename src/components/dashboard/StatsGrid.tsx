@@ -54,7 +54,7 @@ export function StatsGrid() {
             color: "warning",
           },
           {
-            title: "Bookings This Month",
+            title: "Bookings This Year",
             value:
               data.summaryWidgets.find(
                 (w: any) => w.title === "Bookings This Month"
