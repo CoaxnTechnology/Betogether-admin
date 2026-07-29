@@ -2,6 +2,7 @@ import { ChartCard } from "./ChartCard";
 import { SummaryWidget } from "./SummaryWidget";
 import { useEffect, useState } from "react";
 import axios from "../../API/baseUrl";
+const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 export function StatsGrid() {
   const [summaryWidgets, setSummaryWidgets] = useState<any[]>([]);
@@ -17,9 +18,7 @@ export function StatsGrid() {
     const fetchStats = async () => {
       try {
         setLoading(true);
-        const res = await axios.get(
-          "https://uat.api.betogetherapp.com/api/stats"
-        );
+        const res = await axios.get(`${BASE_URL}/api/stats`);
         const data = res.data;
 
         // Summary widgets
