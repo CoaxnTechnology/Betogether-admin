@@ -319,7 +319,7 @@ export default function User() {
 
   return (
     <div className="p-3 md:p-6 bg-gray-50 min-h-screen relative">
-      <p>Hammad</p>
+      
       <ToastContainer
         position="top-right"
         autoClose={3000}
@@ -615,7 +615,7 @@ export default function User() {
                 OK
               </button>
             </div>
-            <h1>coaxn</h1>
+            
           </div>
         </div>
       )}
