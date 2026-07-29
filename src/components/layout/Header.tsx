@@ -1,6 +1,7 @@
 import { FC, useEffect, useState } from "react";
 import { BellRinging, GearSix, UserCircle } from "phosphor-react";
 import { Button } from "@/components/ui/button";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -21,25 +22,23 @@ export const Header: FC = () => {
 
   const [deleteCount, setDeleteCount] = useState(0);
 
-  const fetchDeleteCount = async () => {
-    try {
-      const res = await axios.get(
-        "https://uat.api.betogetherapp.com/api/admin/pending-delete-count",
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("adminToken")}`,
-          },
+const fetchDeleteCount = async () => {
+  try {
+    const res = await axios.get(
+      `${API_BASE_URL}/api/admin/pending-delete-count`,
+      {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("adminToken")}`,
         },
-      );
+      }
+    );
 
-      setDeleteCount(res.data.count || 0);
-    } catch (err) {
-      console.error("Delete count fetch error:", err);
-    }
-  };
-
+    setDeleteCount(res.data.count || 0);
+  } catch (err) {
+    console.error("Delete count fetch error:", err);
+  }
+};
   console.log("Delete count:", deleteCount);
-
   useEffect(() => {
     fetchDeleteCount();
 
@@ -47,6 +46,7 @@ export const Header: FC = () => {
       fetchDeleteCount();
     }, 5000);
 
+    
     const refreshHandler = () => {
       fetchDeleteCount();
     };
