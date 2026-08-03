@@ -6,12 +6,11 @@ import {
   getAllAmbassadors,
 } from "../API/ambassadorApi";
 import { getTerritories } from "../API/territoryApi";
-
+import Select from "react-select";
 interface Application {
   _id: string;
 
-  applicationType: "self" | "exclusive_request";
-
+  applicationType: "self";
   status: string;
   created_at: string;
 
@@ -38,28 +37,6 @@ interface Application {
     successfulBookings?: number;
     totalServices?: number;
   };
-
-  requestedUser?: {
-    _id: string;
-    name: string;
-    email: string;
-    mobile?: string;
-    city?: string;
-    profile_image?: string;
-  };
-
-  requestedByExclusive?: {
-    _id: string;
-    name: string;
-    email: string;
-    ambassadorCode: string;
-
-    territory?: {
-      _id: string;
-      city: string;
-      country: string;
-    };
-  };
 }
 
 interface Territory {
@@ -85,27 +62,25 @@ const AmbassadorApplications = () => {
   const [selectedApplication, setSelectedApplication] =
     useState<Application | null>(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
-
-  const [selectedDetails, setSelectedDetails] = useState<any>(null);
-
+  const [selectedDetails, setSelectedDetails] =
+    useState<Application | null>(null);
   const [ambassadorType, setAmbassadorType] = useState<
     "standard" | "exclusive"
   >("standard");
 
   const [commissionRate, setCommissionRate] = useState(3);
 
-  const [territoryId, setTerritoryId] = useState("");
-
+  const [territoryIds, setTerritoryIds] = useState<string[]>([]);
+  const territoryOptions = territories.map((territory) => ({
+    value: territory._id,
+    label: `${territory.city} (${territory.country})`,
+  }));
   const [parentAmbassadorId, setParentAmbassadorId] = useState("");
 
   const getApplicantName = (application: Application) =>
-    application.applicationType === "exclusive_request"
-      ? application.requestedUser?.name || "-"
-      : application.user?.name || "-";
+    application.user?.name || "-";
   const getApplicantEmail = (application: Application) =>
-    application.applicationType === "exclusive_request"
-      ? application.requestedUser?.email || "-"
-      : application.user?.email || "-";
+    application.user?.email || "-";
 
   const getStatusClass = (status: string) => {
     switch (status?.toLowerCase()) {
@@ -147,13 +122,9 @@ const AmbassadorApplications = () => {
   const openApproveModal = (application: Application) => {
     setSelectedApplication(application);
 
-    setAmbassadorType(
-      application.applicationType === "exclusive_request"
-        ? "standard"
-        : "standard",
-    );
+    setAmbassadorType("standard");
     setCommissionRate(3);
-    setTerritoryId("");
+    setTerritoryIds([]);
     setParentAmbassadorId("");
 
     setShowApproveModal(true);
@@ -169,14 +140,12 @@ const AmbassadorApplications = () => {
           ambassadorType,
           commissionRate,
 
-          territoryId:
-            selectedApplication.applicationType === "self" &&
+          territoryIds:
             ambassadorType === "exclusive"
-              ? territoryId
+              ? territoryIds
               : undefined,
 
           parentAmbassadorId:
-            selectedApplication.applicationType === "self" &&
             ambassadorType === "standard"
               ? parentAmbassadorId
               : undefined,
@@ -205,7 +174,7 @@ const AmbassadorApplications = () => {
       console.log(error);
     }
   };
-  const openDetailsModal = (application: any) => {
+  const openDetailsModal = (application: Application) => {
     setSelectedDetails(application);
     setShowDetailsModal(true);
   };
@@ -236,9 +205,8 @@ const AmbassadorApplications = () => {
                     Profession
                   </th>
 
-                  <th className="border-b px-4 py-3 font-semibold">
-                    {" "}
-                    Requested Territory
+                  <th>
+                    City
                   </th>
                   <th className="border-b px-4 py-3 font-semibold">Type</th>
                   <th className="border-b px-4 py-3 font-semibold">
@@ -254,10 +222,7 @@ const AmbassadorApplications = () => {
               <tbody>
                 {applications.length > 0 ? (
                   applications.map((application) => {
-                    const applicant =
-                      application.applicationType === "exclusive_request"
-                        ? application.requestedUser
-                        : application.user;
+                    const applicant = application.user;
 
                     return (
                       <tr
@@ -269,10 +234,7 @@ const AmbassadorApplications = () => {
                         <td className="px-4 py-4">
                           <div className="flex items-center gap-3">
                             <img
-                              src={
-                                applicant?.profile_image ||
-                                "/default-avatar.png"
-                              }
+                              src={applicant?.profile_image || "/default-avatar.png"}
                               alt=""
                               className="h-12 w-12 rounded-full border object-cover"
                             />
@@ -306,65 +268,31 @@ const AmbassadorApplications = () => {
                         {/* Profession */}
 
                         <td className="px-4 py-4">
-                          {application.applicationType === "self" ? (
-                            <span className="block max-w-[220px] truncate">
-                              {application.profession || "-"}
-                            </span>
-                          ) : (
-                            <span className="rounded bg-blue-100 px-2 py-1 text-xs font-medium text-blue-700">
-                              Standard Ambassador Request
-                            </span>
-                          )}
+                          <span className="block max-w-[220px] truncate">
+                            {application.profession || "-"}
+                          </span>
                         </td>
 
-                        {/* Territory */}
+                        {/* City */}
 
                         <td className="px-4 py-4">
-                          {application.applicationType ===
-                          "exclusive_request" ? (
-                            <div>
-                              <p className="font-medium">
-                                {application.requestedByExclusive?.territory
-                                  ?.city || "-"}
-                              </p>
-
-                              <p className="text-xs text-gray-500">
-                                {application.requestedByExclusive?.territory
-                                  ?.country || ""}
-                              </p>
-                            </div>
-                          ) : (
-                            <div>
-                              <p className="font-medium">
-                                {application.city || "-"}
-                              </p>
-                            </div>
-                          )}
+                          <p className="font-medium">
+                            {application.city || "-"}
+                          </p>
                         </td>
 
                         {/* Type */}
 
                         <td className="px-4 py-4">
-                          <span
-                            className={`rounded-full px-2 py-1 text-xs font-semibold ${
-                              application.applicationType ===
-                              "exclusive_request"
-                                ? "bg-purple-100 text-purple-700"
-                                : "bg-gray-100 text-gray-700"
-                            }`}
-                          >
-                            {application.applicationType === "exclusive_request"
-                              ? "Exclusive Request"
-                              : "Self"}
+                          <span className="rounded-full bg-gray-100 px-2 py-1 text-xs font-semibold text-gray-700">
+                            Self Application
                           </span>
                         </td>
 
                         {/* Applied Date */}
 
                         <td className="px-4 py-4 text-sm text-gray-600">
-                          {new Date(
-                            application.created_at,
-                          ).toLocaleDateString()}
+                          {new Date(application.created_at).toLocaleDateString()}
                         </td>
 
                         {/* Status */}
@@ -461,9 +389,7 @@ const AmbassadorApplications = () => {
                         City
                       </p>
                       <p className="mt-1 font-medium text-gray-800">
-                        {application.applicationType === "exclusive_request"
-                          ? application.requestedByExclusive?.territory?.city
-                          : application.user?.city || "-"}
+                        {application.user?.city || "-"}
                       </p>
                     </div>
 
@@ -473,9 +399,7 @@ const AmbassadorApplications = () => {
                           Phone
                         </p>
                         <p className="mt-1 font-medium text-gray-800">
-                          {application.applicationType === "exclusive_request"
-                            ? application.requestedUser?.mobile
-                            : application.user?.mobile}
+                          {application.user?.mobile}
                         </p>
                       </div>
                     )}
@@ -516,10 +440,7 @@ const AmbassadorApplications = () => {
       {showDetailsModal &&
         selectedDetails &&
         (() => {
-          const detailApplicant =
-            selectedDetails.applicationType === "exclusive_request"
-              ? selectedDetails.requestedUser
-              : selectedDetails.user;
+          const detailApplicant = selectedDetails.user;
 
           return (
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
@@ -576,162 +497,109 @@ const AmbassadorApplications = () => {
                   {/* TYPE */}
 
                   <div className="mb-6">
-                    <span
-                      className={`rounded-full px-3 py-1 text-sm font-semibold ${
-                        selectedDetails.applicationType === "exclusive_request"
-                          ? "bg-purple-100 text-purple-700"
-                          : "bg-blue-100 text-blue-700"
-                      }`}
-                    >
-                      {selectedDetails.applicationType === "exclusive_request"
-                        ? "Exclusive Ambassador Request"
-                        : "Self Ambassador Application"}
+                    <span className="rounded-full bg-blue-100 text-blue-700 px-3 py-1 text-sm font-semibold">
+                      Self Ambassador Application
                     </span>
                   </div>
 
                   {/* STATS */}
 
-                  {selectedDetails.applicationType === "self" && (
-                    <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-3">
-                      <div className="rounded-xl border p-5">
-                        <p className="text-gray-500">Total Services</p>
-                        <h3 className="text-3xl font-bold">
-                          {detailApplicant?.totalServices || 0}
-                        </h3>
-                      </div>
 
-                      <div className="rounded-xl border p-5">
-                        <p className="text-gray-500">Total Bookings</p>
-                        <h3 className="text-3xl font-bold">
-                          {detailApplicant?.totalBookings || 0}
-                        </h3>
-                      </div>
-
-                      <div className="rounded-xl border p-5">
-                        <p className="text-gray-500">Successful Bookings</p>
-                        <h3 className="text-3xl font-bold">
-                          {detailApplicant?.successfulBookings || 0}
-                        </h3>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* EXCLUSIVE REQUEST DETAILS */}
-
-                  {selectedDetails.applicationType === "exclusive_request" && (
-                    <div className="mb-6 rounded-xl border bg-gray-50 p-5">
-                      <h3 className="mb-4 text-lg font-semibold">
-                        Request Submitted By Exclusive Ambassador
+                  <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-3">
+                    <div className="rounded-xl border p-5">
+                      <p className="text-gray-500">Total Services</p>
+                      <h3 className="text-3xl font-bold">
+                        {detailApplicant?.totalServices || 0}
                       </h3>
-
-                      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                        <div>
-                          <p className="text-sm text-gray-500">Requested By</p>
-                          <p className="font-semibold">
-                            {selectedDetails.requestedByExclusive?.name || "-"}
-                          </p>
-                        </div>
-
-                        <div>
-                          <p className="text-sm text-gray-500">
-                            Ambassador Code
-                          </p>
-                          <p className="font-semibold">
-                            {selectedDetails.requestedByExclusive
-                              ?.ambassadorCode || "-"}
-                          </p>
-                        </div>
-
-                        <div>
-                          <p className="text-sm text-gray-500">Territory</p>
-                          <p className="font-semibold">
-                            {
-                              selectedDetails.requestedByExclusive?.territory
-                                ?.city
-                            }{" "}
-                            (
-                            {
-                              selectedDetails.requestedByExclusive?.territory
-                                ?.country
-                            }
-                            )
-                          </p>
-                        </div>
-                      </div>
                     </div>
-                  )}
+
+                    <div className="rounded-xl border p-5">
+                      <p className="text-gray-500">Total Bookings</p>
+                      <h3 className="text-3xl font-bold">
+                        {detailApplicant?.totalBookings || 0}
+                      </h3>
+                    </div>
+
+                    <div className="rounded-xl border p-5">
+                      <p className="text-gray-500">Successful Bookings</p>
+                      <h3 className="text-3xl font-bold">
+                        {detailApplicant?.successfulBookings || 0}
+                      </h3>
+                    </div>
+                  </div>
+
+
+
 
                   {/* SELF APPLICATION */}
 
-                  {selectedDetails.applicationType === "self" && (
-                    <>
-                      <div className="space-y-5">
-                        <div>
-                          <h3 className="mb-2 font-semibold">Profession</h3>
+                  <>
+                    <div className="space-y-5">
+                      <div>
+                        <h3 className="mb-2 font-semibold">Profession</h3>
 
-                          <div className="rounded-lg bg-gray-50 p-4">
-                            {selectedDetails.profession || "-"}
-                          </div>
-                        </div>
-
-                        <div>
-                          <h3 className="mb-2 font-semibold">
-                            Target Audience
-                          </h3>
-
-                          <div className="rounded-lg bg-gray-50 p-4">
-                            {selectedDetails.targetAudience || "-"}
-                          </div>
-                        </div>
-
-                        <div>
-                          <h3 className="mb-2 font-semibold">
-                            Why Become Ambassador?
-                          </h3>
-
-                          <div className="rounded-lg bg-gray-50 p-4">
-                            {selectedDetails.whyBecomeAmbassador || "-"}
-                          </div>
-                        </div>
-
-                        <div>
-                          <h3 className="mb-2 font-semibold">
-                            How Will Promote BeTogether?
-                          </h3>
-
-                          <div className="rounded-lg bg-gray-50 p-4">
-                            {selectedDetails.howPromoteBetogether || "-"}
-                          </div>
+                        <div className="rounded-lg bg-gray-50 p-4">
+                          {selectedDetails.profession || "-"}
                         </div>
                       </div>
 
-                      <div className="mt-6">
-                        <h3 className="mb-3 font-semibold">
-                          Social Media Links
+                      <div>
+                        <h3 className="mb-2 font-semibold">
+                          Target Audience
                         </h3>
 
-                        <div className="flex flex-wrap gap-2">
-                          {selectedDetails.socialMediaUrls?.length ? (
-                            selectedDetails.socialMediaUrls.map(
-                              (url: string, index: number) => (
-                                <a
-                                  key={index}
-                                  href={url}
-                                  target="_blank"
-                                  rel="noreferrer"
-                                  className="rounded bg-blue-100 px-3 py-2 text-blue-700"
-                                >
-                                  Link {index + 1}
-                                </a>
-                              ),
-                            )
-                          ) : (
-                            <span>No Links</span>
-                          )}
+                        <div className="rounded-lg bg-gray-50 p-4">
+                          {selectedDetails.targetAudience || "-"}
                         </div>
                       </div>
-                    </>
-                  )}
+
+                      <div>
+                        <h3 className="mb-2 font-semibold">
+                          Why Become Ambassador?
+                        </h3>
+
+                        <div className="rounded-lg bg-gray-50 p-4">
+                          {selectedDetails.whyBecomeAmbassador || "-"}
+                        </div>
+                      </div>
+
+                      <div>
+                        <h3 className="mb-2 font-semibold">
+                          How Will Promote BeTogether?
+                        </h3>
+
+                        <div className="rounded-lg bg-gray-50 p-4">
+                          {selectedDetails.howPromoteBetogether || "-"}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="mt-6">
+                      <h3 className="mb-3 font-semibold">
+                        Social Media Links
+                      </h3>
+
+                      <div className="flex flex-wrap gap-2">
+                        {selectedDetails.socialMediaUrls?.length ? (
+                          selectedDetails.socialMediaUrls.map(
+                            (url: string, index: number) => (
+                              <a
+                                key={index}
+                                href={url}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="rounded bg-blue-100 px-3 py-2 text-blue-700"
+                              >
+                                Link {index + 1}
+                              </a>
+                            ),
+                          )
+                        ) : (
+                          <span>No Links</span>
+                        )}
+                      </div>
+                    </div>
+                  </>
                 </div>
 
                 <div className="flex justify-end border-t p-6">
@@ -752,9 +620,7 @@ const AmbassadorApplications = () => {
           <div className="max-h-[92vh] w-full max-w-lg overflow-y-auto rounded-lg bg-white p-4 shadow-xl sm:p-6">
             <div className="mb-4">
               <h2 className="text-lg font-semibold text-gray-900 sm:text-xl">
-                {selectedApplication?.applicationType === "exclusive_request"
-                  ? "Approve Standard Ambassador Request"
-                  : "Approve Ambassador"}
+                Approve Ambassador
               </h2>
               {selectedApplication && (
                 <p className="mt-1 truncate text-sm text-gray-500">
@@ -769,23 +635,16 @@ const AmbassadorApplications = () => {
                   Ambassador Type
                 </label>
 
-                {selectedApplication?.applicationType ===
-                "exclusive_request" ? (
-                  <input
-                    value="Standard Ambassador"
-                    disabled
-                    className="w-full rounded-md border bg-gray-100 p-2.5"
-                  />
-                ) : (
-                  <select
-                    value={ambassadorType}
-                    onChange={(e) => setAmbassadorType(e.target.value as any)}
-                    className="w-full rounded-md border border-gray-300 p-2.5"
-                  >
-                    <option value="standard">Standard</option>
-                    <option value="exclusive">Exclusive</option>
-                  </select>
-                )}
+                <select
+                  value={ambassadorType}
+                  onChange={(e) =>
+                    setAmbassadorType(e.target.value as "standard" | "exclusive")
+                  }
+                  className="w-full rounded-md border border-gray-300 p-2.5"
+                >
+                  <option value="standard">Standard</option>
+                  <option value="exclusive">Exclusive</option>
+                </select>
               </div>
 
               <div>
@@ -801,55 +660,53 @@ const AmbassadorApplications = () => {
                 />
               </div>
 
-              {ambassadorType === "exclusive" &&
-                selectedApplication?.applicationType !==
-                  "exclusive_request" && (
-                  <div>
-                    <label className="mb-1.5 block text-sm font-medium text-gray-700">
-                      Territory
-                    </label>
+              {ambassadorType === "exclusive" && (
+                <div className="space-y-2">
+  <label className="block text-sm font-medium text-gray-700">
+    Territories
+  </label>
 
-                    <select
-                      value={territoryId}
-                      onChange={(e) => setTerritoryId(e.target.value)}
-                      className="w-full rounded-md border border-gray-300 p-2.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100"
-                    >
-                      <option value="">Select Territory</option>
+  <Select
+    isMulti
+    options={territoryOptions}
+    placeholder="Search and select territories..."
+    value={territoryOptions.filter((option) =>
+      territoryIds.includes(option.value)
+    )}
+    onChange={(selectedOptions) =>
+      setTerritoryIds(
+        selectedOptions
+          ? selectedOptions.map((option) => option.value)
+          : []
+      )
+    }
+  />
+</div>
+              )}
 
-                      {territories.map((territory) => (
-                        <option key={territory._id} value={territory._id}>
-                          {territory.city} ({territory.country})
+              {ambassadorType === "standard" && (
+                <div>
+                  <label className="mb-1.5 block text-sm font-medium text-gray-700">
+                    Parent Ambassador
+                  </label>
+
+                  <select
+                    value={parentAmbassadorId}
+                    onChange={(e) => setParentAmbassadorId(e.target.value)}
+                    className="w-full rounded-md border border-gray-300 p-2.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100"
+                  >
+                    <option value="">Select Parent</option>
+
+                    {ambassadors
+                      .filter((a) => a.ambassadorType === "exclusive")
+                      .map((a) => (
+                        <option key={a._id} value={a._id}>
+                          {a.name}
                         </option>
                       ))}
-                    </select>
-                  </div>
-                )}
-
-              {ambassadorType === "standard" &&
-                selectedApplication?.applicationType !==
-                  "exclusive_request" && (
-                  <div>
-                    <label className="mb-1.5 block text-sm font-medium text-gray-700">
-                      Parent Ambassador
-                    </label>
-
-                    <select
-                      value={parentAmbassadorId}
-                      onChange={(e) => setParentAmbassadorId(e.target.value)}
-                      className="w-full rounded-md border border-gray-300 p-2.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100"
-                    >
-                      <option value="">Select Parent</option>
-
-                      {ambassadors
-                        .filter((a) => a.ambassadorType === "exclusive")
-                        .map((a) => (
-                          <option key={a._id} value={a._id}>
-                            {a.name}
-                          </option>
-                        ))}
-                    </select>
-                  </div>
-                )}
+                  </select>
+                </div>
+              )}
             </div>
 
             <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2 sm:justify-end">
