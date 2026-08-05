@@ -7,6 +7,7 @@ import {
 } from "../API/ambassadorApi";
 import { getTerritories } from "../API/territoryApi";
 import Select from "react-select";
+import { toast } from "../components/ui/use-toast";
 interface Application {
   _id: string;
 
@@ -112,6 +113,11 @@ const AmbassadorApplications = () => {
       setAmbassadors(ambassadorsRes.data.ambassadors || []);
     } catch (error) {
       console.log(error);
+      toast({
+        title: "Failed to load applications",
+        description: "Something went wrong while fetching data.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -154,10 +160,19 @@ const AmbassadorApplications = () => {
       );
 
       setShowApproveModal(false);
+      toast({
+        title: "Application approved",
+        description: "Ambassador approved successfully.",
+      });
 
       loadData();
     } catch (error) {
       console.log(error);
+      toast({
+        title: "Approval failed",
+        description: "Unable to approve the application.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -169,9 +184,19 @@ const AmbassadorApplications = () => {
     try {
       await rejectApplication(applicationId, reason, token);
 
+      toast({
+        title: "Application rejected",
+        description: "The application was rejected successfully.",
+      });
+
       loadData();
     } catch (error) {
       console.log(error);
+      toast({
+        title: "Rejection failed",
+        description: "Unable to reject the application.",
+        variant: "destructive",
+      });
     }
   };
   const openDetailsModal = (application: Application) => {
