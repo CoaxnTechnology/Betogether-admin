@@ -111,11 +111,11 @@ const AmbassadorApplications = () => {
 
       setTerritories(territoriesRes.data.territories || []);
       setAmbassadors(ambassadorsRes.data.ambassadors || []);
-    } catch (error) {
+    } catch (error: any) {
       console.log(error);
       toast({
         title: "Failed to load applications",
-        description: "Something went wrong while fetching data.",
+        description: error?.response?.data?.message ||"Something went wrong while fetching data.",
         variant: "destructive",
       });
     }
@@ -166,14 +166,17 @@ const AmbassadorApplications = () => {
       });
 
       loadData();
-    } catch (error) {
-      console.log(error);
-      toast({
-        title: "Approval failed",
-        description: "Unable to approve the application.",
-        variant: "destructive",
-      });
-    }
+    } catch (error: any) {
+  console.log(error);
+
+  toast({
+    title: "Approval failed",
+    description:
+      error?.response?.data?.message ||
+      "Unable to approve the application.",
+    variant: "destructive",
+  });
+}
   };
 
   const handleReject = async (applicationId: string) => {
@@ -190,11 +193,13 @@ const AmbassadorApplications = () => {
       });
 
       loadData();
-    } catch (error) {
+    } catch (error: any) {
       console.log(error);
       toast({
         title: "Rejection failed",
-        description: "Unable to reject the application.",
+        description:
+          error?.response?.data?.message ||
+          "Unable to reject the application.",
         variant: "destructive",
       });
     }
