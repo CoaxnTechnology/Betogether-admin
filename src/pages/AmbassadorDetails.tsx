@@ -1,12 +1,15 @@
 import { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
+import Select from "react-select";
 
 import {
   getAmbassadorById,
   getAmbassadorWalletHistory,
   getAmbassadorAnalytics,
   removeAmbassador,
+  updateAmbassador,
 } from "../API/ambassadorApi";
+import { getTerritories } from "../API/territoryApi";
 
 const AmbassadorDetails = () => {
   const { id } = useParams();
@@ -15,13 +18,44 @@ const AmbassadorDetails = () => {
 
   const [errorMessage, setErrorMessage] = useState("");
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editError, setEditError] = useState("");
+  const [commissionRate, setCommissionRate] = useState<number>(0);
+  const [territoryIds, setTerritoryIds] = useState<string[]>([]);
+  const [territories, setTerritories] = useState<any[]>([]);
+  const [savingEdit, setSavingEdit] = useState(false);
+
   const token = localStorage.getItem("adminToken") || "";
 
   const [ambassador, setAmbassador] = useState<any>(null);
 
+  const territoryOptions = territories.map((territory: any) => ({
+    value: territory._id,
+    label: `${territory.city} (${territory.country})`,
+  }));
+
+  const selectedTerritories = territoryOptions.filter((option) =>
+    territoryIds.includes(option.value),
+  );
+
+  const assignedTerritories = ambassador
+    ? ambassador.territories?.map((territory: any) => ({
+        value: territory._id,
+        label: `${territory.city} (${territory.country})`,
+      })) ||
+      (ambassador.territory
+        ? [{
+            value: ambassador.territory._id,
+            label: `${ambassador.territory.city} (${ambassador.territory.country})`,
+          }]
+        : [])
+    : [];
+
   const [walletHistory, setWalletHistory] = useState<any[]>([]);
 
   const [analytics, setAnalytics] = useState<any>(null);
+
+  const location = useLocation();
 
   const loadData = async () => {
     try {
@@ -74,9 +108,45 @@ const AmbassadorDetails = () => {
     }
   };
 
+  const loadTerritories = async () => {
+    try {
+      const res = await getTerritories(token);
+      setTerritories(res.data?.territories || []);
+    } catch (err) {
+      console.log("Unable to load territories", err);
+    }
+  };
+
+  const openEditModal = () => {
+    if (!ambassador) return;
+
+    setCommissionRate(Number(ambassador.commissionRate || 0));
+
+    if (ambassador.ambassadorType === "exclusive") {
+      const currentTerritories = ambassador.territories
+        ? ambassador.territories.map((territory: any) => territory._id)
+        : ambassador.territory
+        ? [ambassador.territory._id]
+        : [];
+      setTerritoryIds(currentTerritories);
+    } else {
+      setTerritoryIds([]);
+    }
+
+    setEditError("");
+    setShowEditModal(true);
+  };
+
   useEffect(() => {
     loadData();
+    loadTerritories();
   }, [id]);
+
+  useEffect(() => {
+    if (location.state?.edit) {
+      openEditModal();
+    }
+  }, [location.state, ambassador]);
 
   if (!ambassador) {
     return <div className="p-6">Loading...</div>;
@@ -129,12 +199,21 @@ const AmbassadorDetails = () => {
             </div>
           </div>
 
-          <button
-            onClick={() => setShowDeleteModal(true)}
-            className="bg-red-600 hover:bg-red-700 text-white px-5 py-3 rounded-lg"
-          >
-            Remove Ambassador
-          </button>
+          <div className="flex flex-wrap gap-3">
+            <button
+              onClick={openEditModal}
+              className="bg-green-600 hover:bg-green-700 text-white px-5 py-3 rounded-lg"
+            >
+              Edit Ambassador
+            </button>
+
+            <button
+              onClick={() => setShowDeleteModal(true)}
+              className="bg-red-600 hover:bg-red-700 text-white px-5 py-3 rounded-lg"
+            >
+              Remove Ambassador
+            </button>
+          </div>
         </div>
       </div>
 
@@ -172,23 +251,42 @@ const AmbassadorDetails = () => {
 
       {/* TERRITORY */}
 
-      {ambassador.territory && (
+      {(ambassador.territory || ambassador.territories?.length > 0) && (
         <div className="bg-white rounded-xl shadow p-6">
           <h2 className="text-xl font-bold mb-4">Territory Information</h2>
 
           <div className="grid md:grid-cols-2 gap-4">
             <div>
               City:
-              <strong> {ambassador.territory.city}</strong>
+              <strong>
+                {ambassador.territories?.length > 0
+                  ? ambassador.territories.map((t: any) => t.city).join(", ")
+                  : ambassador.territory?.city || "-"}
+              </strong>
             </div>
 
             <div>
               Country:
-              <strong> {ambassador.territory.country}</strong>
+              <strong>
+                {ambassador.territories?.length > 0
+                  ? ambassador.territories.map((t: any) => t.country).join(", ")
+                  : ambassador.territory?.country || "-"}
+              </strong>
             </div>
           </div>
 
-          
+          {assignedTerritories.length > 0 && (
+            <div className="mt-4 flex flex-wrap gap-2">
+              {assignedTerritories.map((territory) => (
+                <span
+                  key={territory.value}
+                  className="inline-flex items-center rounded-full bg-blue-100 px-3 py-1 text-sm font-medium text-blue-800"
+                >
+                  {territory.label}
+                </span>
+              ))}
+            </div>
+          )}
         </div>
       )}
 
@@ -348,6 +446,174 @@ const AmbassadorDetails = () => {
                 className="bg-red-600 text-white px-4 py-2 rounded"
               >
                 Remove
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showEditModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl p-6 w-full max-w-2xl">
+            <h2 className="text-xl font-bold mb-4">Edit Ambassador</h2>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  Commission Rate (%)
+                </label>
+                <input
+                  type="number"
+                  min={0}
+                  max={12}
+                  value={commissionRate}
+                  onChange={(e) => setCommissionRate(Number(e.target.value))}
+                  className="mt-1 block w-full border rounded-lg px-3 py-2"
+                />
+              </div>
+
+              {ambassador.ambassadorType === "exclusive" && (
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-gray-700">
+                    Territories
+                  </label>
+
+                  {(selectedTerritories.length > 0 || assignedTerritories.length > 0) && (
+                    <div className="mb-2">
+                      <p className="mb-2 text-sm font-medium text-gray-700">
+                        Currently assigned territories:
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        {(selectedTerritories.length > 0 ? selectedTerritories : assignedTerritories).map(
+                          (territory) => (
+                            <span
+                              key={territory.value}
+                              className="inline-flex items-center rounded-full bg-blue-100 px-3 py-1 text-sm font-medium text-blue-800"
+                            >
+                              {territory.label}
+                            </span>
+                          ),
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  <Select
+                    isMulti
+                    options={territoryOptions}
+                    value={selectedTerritories}
+                    onChange={(selectedOptions) =>
+                      setTerritoryIds(
+                        selectedOptions
+                          ? selectedOptions.map((option) => option.value)
+                          : [],
+                      )
+                    }
+                    className="react-select-container"
+                    classNamePrefix="react-select"
+                    placeholder="Search & select territories..."
+                    styles={{
+                      control: (base, state) => ({
+                        ...base,
+                        borderRadius: "0.75rem",
+                        borderColor: state.isFocused ? "#93c5fd" : "#d1d5db",
+                        boxShadow: state.isFocused ? "0 0 0 1px #93c5fd" : "none",
+                        minHeight: "3rem",
+                      }),
+                      multiValue: (base) => ({
+                        ...base,
+                        backgroundColor: "#e0f2fe",
+                        borderRadius: "9999px",
+                      }),
+                      multiValueLabel: (base) => ({
+                        ...base,
+                        color: "#0f172a",
+                      }),
+                      multiValueRemove: (base) => ({
+                        ...base,
+                        color: "#0f172a",
+                        ':hover': {
+                          backgroundColor: "#bfdbfe",
+                          color: "#1d4ed8",
+                        },
+                      }),
+                      menu: (base) => ({
+                        ...base,
+                        borderRadius: "0.75rem",
+                        boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1)",
+                      }),
+                    }}
+                  />
+                  <p className="mt-2 text-sm text-gray-500">
+                    Currently selected territories are shown above. Remove any you no longer want and/or add new territories using the search field.
+                  </p>
+                </div>
+              )}
+
+              {editError && (
+                <div className="rounded-md bg-red-50 p-3 text-red-700">
+                  {editError}
+                </div>
+              )}
+            </div>
+
+            <div className="mt-6 flex flex-wrap gap-3 justify-end">
+              <button
+                type="button"
+                onClick={() => setShowEditModal(false)}
+                className="border px-4 py-2 rounded"
+              >
+                Cancel
+              </button>
+
+              <button
+                type="button"
+                onClick={async () => {
+                  try {
+                    setSavingEdit(true);
+                    setEditError("");
+
+                    if (commissionRate < 0 || commissionRate > 12) {
+                      setEditError("Commission rate must be between 0 and 12.");
+                      return;
+                    }
+
+                    if (
+                      ambassador.ambassadorType === "exclusive" &&
+                      (!territoryIds || territoryIds.length === 0)
+                    ) {
+                      setEditError("Please select at least one territory.");
+                      return;
+                    }
+
+                    await updateAmbassador(
+                      id!,
+                      {
+                        commissionRate,
+                        territoryIds:
+                          ambassador.ambassadorType === "exclusive"
+                            ? territoryIds
+                            : undefined,
+                      },
+                      token,
+                    );
+
+                    await loadData();
+                    setShowEditModal(false);
+                  } catch (err: any) {
+                    console.log("updateAmbassador error", err);
+                    setEditError(
+                      err?.response?.data?.message ||
+                        "Unable to update ambassador.",
+                    );
+                  } finally {
+                    setSavingEdit(false);
+                  }
+                }}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
+                disabled={savingEdit}
+              >
+                {savingEdit ? "Saving..." : "Save Changes"}
               </button>
             </div>
           </div>
