@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import Select from "react-select";
+import { toast } from "../components/ui/sonner";
 
 import {
   getAmbassadorById,
@@ -145,8 +146,9 @@ const AmbassadorDetails = () => {
   useEffect(() => {
     if (location.state?.edit) {
       openEditModal();
+      navigate(location.pathname, { replace: true, state: null });
     }
-  }, [location.state, ambassador]);
+  }, [location.state, ambassador, navigate, location.pathname]);
 
   if (!ambassador) {
     return <div className="p-6">Loading...</div>;
@@ -598,14 +600,16 @@ const AmbassadorDetails = () => {
                       token,
                     );
 
+                    toast.success("Ambassador updated successfully.");
                     await loadData();
                     setShowEditModal(false);
                   } catch (err: any) {
                     console.log("updateAmbassador error", err);
-                    setEditError(
+                    const message =
                       err?.response?.data?.message ||
-                        "Unable to update ambassador.",
-                    );
+                      "Unable to update ambassador.";
+                    setEditError(message);
+                    toast.error(message);
                   } finally {
                     setSavingEdit(false);
                   }
