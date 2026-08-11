@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+const API_ADMIN_PATH = import.meta.env.VITE_API_ADMIN_PATH;
 import {
   CreditCard,
   Percent,
@@ -35,8 +37,8 @@ const PaymentSettings = () => {
       setLoading(true);
 
       const [commissionRes, cancelRes] = await Promise.all([
-        axios.get("https://api.betogetherapp.com/api/admin/commission"),
-        axios.get("https://api.betogetherapp.com/api/admin/cancellation"),
+        axios.get(`${API_BASE_URL}${API_ADMIN_PATH}/commission`),
+        axios.get(`${API_BASE_URL}${API_ADMIN_PATH}/cancellation`),
       ]);
 
       const providerValue =
@@ -73,7 +75,7 @@ const PaymentSettings = () => {
 
       const res = await axios.get(
 
-        `https://api.betogetherapp.com/api/admin/payment?page=${pageNumber}&limit=${limit}`
+        `${API_BASE_URL}${API_ADMIN_PATH}/payment?page=${pageNumber}&limit=${limit}`
 
       );
 
@@ -95,7 +97,7 @@ const PaymentSettings = () => {
   const handleCommissionSave = async () => {
     try {
       await axios.put(
-        "https://api.betogetherapp.com/api/admin/commission",
+        `${API_BASE_URL}${API_ADMIN_PATH}/commission`,
         {
           providerCommissionPercentage: Number(providerCommission),
 
@@ -112,7 +114,7 @@ const PaymentSettings = () => {
   const handleCancellationSave = async () => {
     try {
       await axios.put(
-        "https://api.betogetherapp.com/api/admin/cancellation",
+        `${API_BASE_URL}${API_ADMIN_PATH}/cancellation`,
         {
           enabled: cancellationEnabled,
           percentage: cancellationEnabled

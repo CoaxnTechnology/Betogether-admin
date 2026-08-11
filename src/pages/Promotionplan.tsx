@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import toast, { Toaster } from "react-hot-toast";
 import Swal from "sweetalert2";
-
+const API_BASE = `${import.meta.env.VITE_API_BASE_URL}${import.meta.env.VITE_API_ADMIN_PATH}`;
 interface Plan {
   _id: string;
   name: string;
@@ -26,16 +26,16 @@ export default function PromotionPlan() {
   //////////////////////////////////////////////////
   const fetchPlans = async () => {
     try {
-      const res = await axios.get(
-        "https://api.betogetherapp.com/api/admin/promotion-plans"
-      );
-      const sorted = res.data.plans.sort(
-        (a: Plan, b: Plan) => a.days - b.days
-      );
-      setPlans(sorted);
-    } catch (err) {
-      toast.error("Failed to fetch promotion plans");
-    }
+  const res = await axios.get(`${API_BASE}/promotion-plans`);
+
+  const sorted = res.data.plans.sort(
+    (a: Plan, b: Plan) => a.days - b.days
+  );
+
+  setPlans(sorted);
+} catch (err) {
+  toast.error("Failed to fetch promotion plans");
+}
   };
 
   useEffect(() => {
@@ -72,13 +72,13 @@ export default function PromotionPlan() {
 
       if (editingId) {
         await axios.put(
-          `https://api.betogetherapp.com/api/admin/promotion-plan/${editingId}`,
+          `${API_BASE}/promotion-plan/${editingId}`,
           { name, description, days, price }
         );
         toast.success("Promotion plan updated successfully ✅");
       } else {
         await axios.post(
-          "https://api.betogetherapp.com/api/admin/create-promotion-plan",
+          `${API_BASE}/create-promotion-plan`,
           { name, description, days, price }
         );
         toast.success("Promotion plan added successfully 🎉");
@@ -124,7 +124,7 @@ export default function PromotionPlan() {
 
     try {
       await axios.delete(
-        `https://api.betogetherapp.com/api/admin/promotion-plan/${id}`
+        `${API_BASE}/promotion-plan/${id}`
       );
       toast.success("Promotion plan deleted 🗑️");
       fetchPlans();

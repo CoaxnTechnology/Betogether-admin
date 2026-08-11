@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Users, UserCheck, Globe, Wallet, Eye, Trash2 } from "lucide-react";
+import { Users, UserCheck, Globe, Wallet, Eye, Trash2, Pencil } from "lucide-react";
 import { getAllAmbassadors } from "../API/ambassadorApi";
 import { useNavigate } from "react-router-dom";
 const Ambassadors = () => {
@@ -200,8 +200,21 @@ const Ambassadors = () => {
                       <button
                         onClick={() => navigate(`/ambassadors/${item._id}`)}
                         className="bg-blue-600 hover:bg-blue-700 text-white p-2 rounded"
+                        title="View Ambassador"
                       >
                         <Eye size={18} />
+                      </button>
+
+                      <button
+                        onClick={() =>
+                          navigate(`/ambassadors/${item._id}`, {
+                            state: { edit: true },
+                          })
+                        }
+                        className="bg-green-600 hover:bg-green-700 text-white p-2 rounded"
+                        title="Edit Ambassador"
+                      >
+                        <Pencil size={18} />
                       </button>
                     </div>
                   </td>

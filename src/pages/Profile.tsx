@@ -1,5 +1,8 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+const API_BASE = `${import.meta.env.VITE_API_BASE_URL}${import.meta.env.VITE_API_ADMIN_PATH}`;
+
+const API_TIMEOUT = Number(import.meta.env.VITE_API_TIMEOUT);
 import {
   UserCircle,
   Phone,
@@ -11,9 +14,6 @@ import {
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useNavigate } from "react-router-dom";
-
-const API_BASE = "https://api.betogetherapp.com/api/admin";
-
 /* ================= PASSWORD STRENGTH ================= */
 const getPasswordStrength = (password: string) => {
   let score = 0;
@@ -81,10 +81,12 @@ const Profile: React.FC = () => {
 
     setLoading(true);
 
-    axios
-      .get(`${API_BASE}/profile`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
+    axios.get(`${API_BASE}/profile`, {
+  headers: {
+    Authorization: `Bearer ${token}`,
+  },
+  timeout: API_TIMEOUT,
+})
       .then((res) => {
         const d = res.data.data;
         setMobile(d.mobile || "");
@@ -100,8 +102,11 @@ const Profile: React.FC = () => {
   }, []);
 
   const authHeader = {
-    headers: { Authorization: `Bearer ${token}` },
-  };
+  headers: {
+    Authorization: `Bearer ${token}`,
+  },
+  timeout: API_TIMEOUT,
+};
 
   /* ================= API HANDLERS ================= */
 

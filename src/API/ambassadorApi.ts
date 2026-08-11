@@ -21,7 +21,7 @@ export const approveApplication = async (
   data: {
     ambassadorType: "standard" | "exclusive";
     commissionRate: number;
-    territoryId?: string;
+    territoryIds?: string[];
     parentAmbassadorId?: string;
   },
   token: string,
@@ -147,4 +147,21 @@ export const getAmbassadorAnalytics = async (id: string, token: string) => {
   return axios.get(`${BASE_URL}/api/ambassador/admin/${id}/analytics`, {
     headers: getHeaders(token),
   });
+};
+
+export const updateAmbassador = async (
+  userId: string,
+  data: {
+    commissionRate: number;
+    territoryIds?: string[];
+  },
+  token: string,
+) => {
+  return axios.post(
+    `${BASE_URL}/api/ambassador/admin/update-ambassador/${userId}`,
+    data,
+    {
+      headers: getHeaders(token),
+    },
+  );
 };
