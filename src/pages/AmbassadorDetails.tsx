@@ -106,6 +106,7 @@ const AmbassadorDetails = () => {
       setAnalytics(analyticsRes.data?.analytics);
     } catch (err) {
       console.log("API Error:", err);
+      toast.error("Failed to load ambassador details. Please try again.");
     }
   };
 
@@ -115,6 +116,7 @@ const AmbassadorDetails = () => {
       setTerritories(res.data?.territories || []);
     } catch (err) {
       console.log("Unable to load territories", err);
+      toast.error("Failed to load territories.");
     }
   };
 
