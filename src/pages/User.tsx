@@ -29,6 +29,9 @@ interface Territory {
   _id: string;
   city: string;
   country: string;
+  exclusiveAmbassador?: {
+    name: string;
+  } | null;
 }
 
 interface Ambassador {
@@ -66,10 +69,12 @@ export default function User() {
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const [recordsPerPage, setRecordsPerPage] = useState(10);
-  const territoryOptions = territories.map((t) => ({
-    value: t._id,
-    label: `${t.city} (${t.country})`,
-  }));
+  const territoryOptions = territories
+    .filter((t) => !t.exclusiveAmbassador)
+    .map((t) => ({
+      value: t._id,
+      label: `${t.city} (${t.country})`,
+    }));
   // Helper to safely display field values
   const displayValue = (val?: string | null) =>
     val && val.trim() !== "" && val !== "null" ? val : "N/A";
