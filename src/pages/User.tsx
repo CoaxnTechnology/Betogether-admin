@@ -528,8 +528,8 @@ export default function User() {
             </tbody>
           </table>
           {showAmbassadorModal && (
-            <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-              <div className="bg-white p-6 rounded-xl w-[500px]">
+            <div className="fixed inset-0 bg-black/40 flex items-end sm:items-center justify-center z-50 p-3 sm:p-4">
+              <div className="bg-white p-6 rounded-xl w-full max-w-[500px] max-h-[92vh] overflow-y-auto">
                 <h2 className="text-xl font-bold mb-4">Make Ambassador</h2>
 
                 <label>Ambassador Type</label>
@@ -685,8 +685,8 @@ export default function User() {
         </div>
       </div>
       {showRemoveModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="w-[500px] rounded-xl bg-white p-6 shadow-xl">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 p-3 sm:p-4">
+          <div className="w-full max-w-[500px] rounded-xl bg-white p-6 shadow-xl">
             <h2 className="mb-3 text-xl font-bold text-red-600">
               Cannot Remove Ambassador
             </h2>
