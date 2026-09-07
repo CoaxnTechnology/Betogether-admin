@@ -44,6 +44,9 @@ interface Territory {
   _id: string;
   city: string;
   country: string;
+  exclusiveAmbassador?: {
+    name: string;
+  } | null;
 }
 
 interface Ambassador {
@@ -72,10 +75,12 @@ const AmbassadorApplications = () => {
   const [commissionRate, setCommissionRate] = useState(3);
 
   const [territoryIds, setTerritoryIds] = useState<string[]>([]);
-  const territoryOptions = territories.map((territory) => ({
-    value: territory._id,
-    label: `${territory.city} (${territory.country})`,
-  }));
+  const territoryOptions = territories
+    .filter((territory) => !territory.exclusiveAmbassador)
+    .map((territory) => ({
+      value: territory._id,
+      label: `${territory.city} (${territory.country})`,
+    }));
   const [parentAmbassadorId, setParentAmbassadorId] = useState("");
 
   const getApplicantName = (application: Application) =>
