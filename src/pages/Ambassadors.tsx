@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Users, UserCheck, Globe, Wallet, Eye, Trash2, Pencil } from "lucide-react";
 import { getAllAmbassadors } from "../API/ambassadorApi";
 import { useNavigate } from "react-router-dom";
+import { toast } from "../components/ui/sonner";
 const Ambassadors = () => {
   const token = localStorage.getItem("adminToken") || "";
   const navigate = useNavigate();
@@ -15,6 +16,7 @@ const Ambassadors = () => {
       setAmbassadors(res.data.ambassadors || []);
     } catch (err) {
       console.log(err);
+      toast.error("Failed to load ambassadors. Please try again.");
     }
   };
 
