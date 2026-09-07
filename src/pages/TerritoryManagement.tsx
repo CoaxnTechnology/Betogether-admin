@@ -24,8 +24,6 @@ const libraries: ("places")[] = ["places"];
 const TerritoryManagement = () => {
   const token = localStorage.getItem("adminToken") || "";
 
-  console.log("TerritoryManagement token:", token);
-
   const [territories, setTerritories] = useState<Territory[]>([]);
 
   const [city, setCity] = useState("");
@@ -53,8 +51,6 @@ const TerritoryManagement = () => {
   const [editingCountry, setEditingCountry] = useState("");
       const loadTerritories = async () => {
     try {
-      console.log("Calling getTerritories API with token:", token);
-
       const res = await getTerritories(token);
 
       console.log("getTerritories API response:", res);
@@ -281,8 +277,8 @@ const TerritoryManagement = () => {
             Create Territory
           </h2>
 
-          <div className="flex gap-3">
-            <div className="flex-1">
+          <div className="flex flex-col sm:flex-row gap-3">
+            <div className="flex-1 min-w-0">
               <Autocomplete
                 onLoad={(autocomplete) => {
                   autocompleteRef.current = autocomplete;
@@ -307,12 +303,12 @@ const TerritoryManagement = () => {
               placeholder="Country"
               value={country}
               readOnly
-              className="border p-2 rounded w-40 bg-gray-100 cursor-not-allowed"
+              className="border p-2 rounded w-full sm:w-40 bg-gray-100 cursor-not-allowed"
             />
 
             <button
               onClick={handleCreate}
-              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 shrink-0"
             >
               Create
             </button>

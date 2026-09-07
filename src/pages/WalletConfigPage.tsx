@@ -24,8 +24,6 @@ export default function WalletConfigPage() {
     currency: "",
   });
 
-  console.log("WalletConfigPage render", { loading, saving, config });
-
   // ==========================
   // FETCH CONFIG
   // ==========================

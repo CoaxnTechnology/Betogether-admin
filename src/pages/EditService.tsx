@@ -203,7 +203,6 @@ const EditService: React.FC = () => {
       }
 
       const adminToken = localStorage.getItem("token");
-      console.log("🔑 Admin token:", adminToken);
       await axios.patch(
         "https://api.betogetherapp.com/api/admin/service/update",
         fd,
@@ -369,7 +368,7 @@ const EditService: React.FC = () => {
             <label className="block font-medium mb-2">Recurring Schedule</label>
 
             {formData.recurringSlots.map((slot, index) => (
-              <div key={index} className="grid grid-cols-4 gap-3 items-center">
+              <div key={index} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 items-center">
                 {/* DAY */}
                 <select
                   value={slot.day}

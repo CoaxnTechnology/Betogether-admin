@@ -106,6 +106,7 @@ const AmbassadorDetails = () => {
       setAnalytics(analyticsRes.data?.analytics);
     } catch (err) {
       console.log("API Error:", err);
+      toast.error("Failed to load ambassador details. Please try again.");
     }
   };
 
@@ -115,6 +116,7 @@ const AmbassadorDetails = () => {
       setTerritories(res.data?.territories || []);
     } catch (err) {
       console.log("Unable to load territories", err);
+      toast.error("Failed to load territories.");
     }
   };
 
@@ -427,8 +429,8 @@ const AmbassadorDetails = () => {
         </div>
       </div>
       {showDeleteModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl p-6 w-[450px]">
+        <div className="fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center z-50 p-3 sm:p-4">
+          <div className="bg-white rounded-xl p-6 w-full max-w-[450px]">
             <h2 className="text-xl font-bold mb-3">Remove Ambassador</h2>
 
             <p className="text-gray-600 mb-5">
@@ -624,8 +626,8 @@ const AmbassadorDetails = () => {
         </div>
       )}
       {errorModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="w-[500px] rounded-xl bg-white p-6 shadow-xl">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 p-3 sm:p-4">
+          <div className="w-full max-w-[500px] rounded-xl bg-white p-6 shadow-xl">
             <h2 className="mb-3 text-xl font-bold text-red-600">
               Cannot Remove Ambassador
             </h2>

@@ -8,20 +8,20 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
     <SidebarProvider>
       {" "}
       {/* ✅ Wrap everything inside */}
-      <div className="min-h-screen flex w-full bg-background">
+      <div className="min-h-screen flex w-full bg-background overflow-x-hidden">
         {/* Sidebar */}
         <AppSidebar />
 
         {/* Main Content */}
-        <div className="flex-1 flex flex-col">
+        <div className="flex-1 flex flex-col min-w-0">
           {/* Header */}
           <Header />
 
           {/* Page Content */}
-          <main className="flex-1 p-4 bg-gray-50 overflow-y-auto">
+          <main className="flex-1 min-w-0 p-3 sm:p-4 bg-gray-50 overflow-y-auto overflow-x-hidden">
             {children}
           </main>
-          
+
         </div>
       </div>
     </SidebarProvider>

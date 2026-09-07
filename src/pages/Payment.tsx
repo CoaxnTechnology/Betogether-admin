@@ -214,23 +214,25 @@ const PaymentSettings = () => {
       <div className="bg-white shadow-xl rounded-2xl p-5 border">
         <h3 className="text-lg font-semibold mb-3">Current Saved Settings</h3>
 
-        <table className="w-full border-collapse">
-          <thead>
-            <tr className="border-b font-semibold text-center">
-              <th className="p-2">Provider Commission %</th>
-              <th className="p-2">Customer Commission %</th>
-              <th className="p-2">Cancellation %</th>
-            </tr>
-          </thead>
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[500px] border-collapse">
+            <thead>
+              <tr className="border-b font-semibold text-center">
+                <th className="p-2">Provider Commission %</th>
+                <th className="p-2">Customer Commission %</th>
+                <th className="p-2">Cancellation %</th>
+              </tr>
+            </thead>
 
-          <tbody>
-            <tr className="border-b text-sm text-center">
-              <td className="p-2">{savedProviderCommission || "-"}</td>
-              <td className="p-2">{savedCustomerCommission || "-"}</td>
-              <td className="p-2">{savedCancellation || "-"}</td>
-            </tr>
-          </tbody>
-        </table>
+            <tbody>
+              <tr className="border-b text-sm text-center">
+                <td className="p-2">{savedProviderCommission || "-"}</td>
+                <td className="p-2">{savedCustomerCommission || "-"}</td>
+                <td className="p-2">{savedCancellation || "-"}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {/* PAYMENT DETAILS TABLE */}
