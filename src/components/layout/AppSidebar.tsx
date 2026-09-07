@@ -75,11 +75,15 @@ const navigationItems: NavItem[] = [
 ];
 
 export function AppSidebar() {
-  const { state } = useSidebar(); // only state
+  const { state, isMobile, setOpenMobile } = useSidebar();
   const location = useLocation();
   const currentPath = location.pathname;
   const collapsed = state === "collapsed";
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
+
+  const closeMobileSidebar = () => {
+    if (isMobile) setOpenMobile(false);
+  };
 
   const isSubmenuActive = (subItems?: { title: string; url: string }[]) =>
     subItems?.some((item) => currentPath === item.url) ?? false;
@@ -171,7 +175,12 @@ export function AppSidebar() {
                         </div>
                       ) : (
                         <SidebarMenuButton asChild>
-                          <NavLink to={item.url} end className={getNavCls}>
+                          <NavLink
+                            to={item.url}
+                            end
+                            className={getNavCls}
+                            onClick={closeMobileSidebar}
+                          >
                             <item.icon className="h-5 w-5 flex-shrink-0" />
                             {!collapsed && (
                               <span className="truncate">{item.title}</span>
