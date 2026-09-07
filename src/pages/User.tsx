@@ -251,6 +251,13 @@ export default function User() {
 
     await fetchUsers();
   };
+  const resetAmbassadorForm = () => {
+    setAmbassadorType("standard");
+    setCommissionRate(3);
+    setTerritoryIds([]);
+    setParentAmbassadorId("");
+  };
+
   const handleCreateAmbassador = async () => {
     try {
       const token = localStorage.getItem("adminToken");
@@ -291,10 +298,10 @@ export default function User() {
         toast.success("Ambassador invitation sent successfully");
 
         setShowAmbassadorModal(false);
-
-
+        resetAmbassadorForm();
 
         await fetchUsers();
+        await loadDropdownData();
       }
     } catch (err: any) {
       toast.error(err?.response?.data?.message || "Failed");
@@ -507,6 +514,7 @@ export default function User() {
                           onClick={() => {
                             console.log("send invitation button clicked", user._id);
                             setSelectedUser(user);
+                            resetAmbassadorForm();
                             setShowAmbassadorModal(true);
                           }}
                         >
@@ -605,6 +613,7 @@ export default function User() {
                     onClick={() => {
                       console.log("ambassador modal cancel clicked");
                       setShowAmbassadorModal(false);
+                      resetAmbassadorForm();
                     }}
                     className="border px-4 py-2 rounded"
                   >
