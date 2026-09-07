@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { toast } from "../components/ui/sonner";
 
 type DeletedUser = {
   backupId: string;
@@ -68,6 +69,7 @@ const DeletedAccounts = () => {
           "Deleted accounts error:",
           error
         );
+        toast.error("Failed to load deleted accounts. Please try again.");
       } finally {
         setLoading(false);
       }
