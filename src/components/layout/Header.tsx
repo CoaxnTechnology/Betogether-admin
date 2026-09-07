@@ -38,7 +38,6 @@ const fetchDeleteCount = async () => {
     console.error("Delete count fetch error:", err);
   }
 };
-  console.log("Delete count:", deleteCount);
   useEffect(() => {
     fetchDeleteCount();
 
@@ -101,7 +100,7 @@ const fetchDeleteCount = async () => {
 
             <DropdownMenuContent
               align="end"
-              className="w-80 bg-white text-black"
+              className="w-[90vw] max-w-80 bg-white text-black"
             >
               <div className="flex items-center justify-between p-3 border-b">
                 <h4 className="font-semibold">Delete Requests</h4>
