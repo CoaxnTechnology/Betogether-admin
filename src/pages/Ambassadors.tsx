@@ -1,17 +1,16 @@
 import { useEffect, useState } from "react";
 import { Users, UserCheck, Globe, Wallet, Eye, Trash2, Pencil } from "lucide-react";
-import { getAllAmbassadors } from "../API/ambassadorApi";
+import { getAllAmbassadors } from "../api/ambassador.api";
 import { useNavigate } from "react-router-dom";
 import { toast } from "../components/ui/sonner";
 const Ambassadors = () => {
-  const token = localStorage.getItem("adminToken") || "";
   const navigate = useNavigate();
   const [ambassadors, setAmbassadors] = useState([]);
   const [search, setSearch] = useState("");
 
   const loadData = async () => {
     try {
-      const res = await getAllAmbassadors(token);
+      const res = await getAllAmbassadors();
 
       setAmbassadors(res.data.ambassadors || []);
     } catch (err) {

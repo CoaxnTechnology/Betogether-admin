@@ -4,8 +4,8 @@ import {
   approveApplication,
   rejectApplication,
   getAllAmbassadors,
-} from "../API/ambassadorApi";
-import { getTerritories } from "../API/territoryApi";
+} from "../api/ambassador.api";
+import { getTerritories } from "../api/territory.api";
 import Select from "react-select";
 import { toast } from "../components/ui/use-toast";
 interface Application {
@@ -56,8 +56,6 @@ interface Ambassador {
 }
 
 const AmbassadorApplications = () => {
-  const token = localStorage.getItem("adminToken") || "";
-
   const [applications, setApplications] = useState<Application[]>([]);
   const [territories, setTerritories] = useState<Territory[]>([]);
   const [ambassadors, setAmbassadors] = useState<Ambassador[]>([]);
@@ -105,10 +103,10 @@ const AmbassadorApplications = () => {
     try {
       const [applicationsRes, territoriesRes, ambassadorsRes] =
         await Promise.all([
-          getAllApplications(token),
+          getAllApplications(),
 
-          getTerritories(token),
-          getAllAmbassadors(token),
+          getTerritories(),
+          getAllAmbassadors(),
         ]);
 
       console.log("getAllApplications response:", applicationsRes);
@@ -161,7 +159,6 @@ const AmbassadorApplications = () => {
               ? parentAmbassadorId
               : undefined,
         },
-        token,
       );
 
       setShowApproveModal(false);
@@ -190,7 +187,7 @@ const AmbassadorApplications = () => {
     if (!reason) return;
 
     try {
-      await rejectApplication(applicationId, reason, token);
+      await rejectApplication(applicationId, reason);
 
       toast({
         title: "Application rejected",

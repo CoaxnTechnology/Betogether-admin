@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
 import { useNavigate } from "react-router-dom";
-import axios from "../API/baseUrl"; // ✅ your axios instance
+import axios from "../api/client"; // ✅ your axios instance
 import { Button } from "@/components/ui/button";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -11,8 +11,9 @@ import {
   makeAmbassador,
   removeAmbassador,
   getAllAmbassadors,
-} from "../API/ambassadorApi";
-import { getTerritories } from "../API/territoryApi";
+} from "../api/ambassador.api";
+import { getTerritories } from "../api/territory.api";
+import { useAuth } from "../context/AuthContext";
 interface UserType {
   _id: string;
   name?: string;
@@ -42,6 +43,7 @@ interface Ambassador {
 
 export default function User() {
   const navigate = useNavigate();
+  const { token } = useAuth();
   const [users, setUsers] = useState<UserType[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAmbassadorModal, setShowAmbassadorModal] = useState(false);
@@ -80,30 +82,15 @@ export default function User() {
     val && val.trim() !== "" && val !== "null" ? val : "N/A";
   const loadDropdownData = async () => {
     try {
-      const token = localStorage.getItem("adminToken");
-      console.log("loadDropdownData: start");
+      if (!token) return;
 
-      if (!token) {
-        console.log("loadDropdownData: no adminToken found");
-        return;
-      }
-
-      console.log("loadDropdownData: adminToken found", token);
-
-      const territoryRes = await getTerritories(token);
+      const territoryRes = await getTerritories();
 
       setTerritories(territoryRes.data?.territories || []);
 
-      const ambassadorRes = await getAllAmbassadors(token);
+      const ambassadorRes = await getAllAmbassadors();
 
       setAmbassadors(ambassadorRes.data?.ambassadors || []);
-
-      console.log(
-        "loadDropdownData: territories loaded",
-        territoryRes.data?.territories,
-        "ambassadors loaded",
-        ambassadorRes.data?.ambassadors,
-      );
     } catch (err) {
       console.error("loadDropdownData error:", err);
     }
@@ -223,16 +210,12 @@ export default function User() {
   };
   const handleToggleAmbassador = async (user: UserType) => {
     try {
-      console.log("handleToggleAmbassador: remove ambassador for user", user._id);
-      const token = localStorage.getItem("adminToken");
-
       if (!token) {
         toast.error("Admin token missing");
         return;
       }
 
-      const response = await removeAmbassador(user._id, token);
-      console.log("handleToggleAmbassador: response", response.data);
+      const response = await removeAmbassador(user._id);
 
       if (response.data.isSuccess) {
         toast.success("Ambassador removed");
@@ -260,14 +243,6 @@ export default function User() {
 
   const handleCreateAmbassador = async () => {
     try {
-      const token = localStorage.getItem("adminToken");
-      console.log(
-        "handleCreateAmbassador: selectedUser",
-        selectedUser?._id,
-        "type",
-        ambassadorType,
-      );
-
       if (!selectedUser || !token) return;
       if (
         ambassadorType === "exclusive" &&
@@ -291,8 +266,7 @@ export default function User() {
           ambassadorType === "standard" ? parentAmbassadorId : undefined,
       };
 
-      const res = await makeAmbassador(selectedUser._id, payload, token);
-      console.log("handleCreateAmbassador: response", res.data);
+      const res = await makeAmbassador(selectedUser._id, payload);
 
       if (res.data.isSuccess) {
         toast.success("Ambassador invitation sent successfully");

@@ -5,10 +5,11 @@ import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 // ✅ USE CENTRAL API INSTANCE (SECURE)
-import api from "../../API/baseUrl";
+import api from "../../api/client";
+import { useAuth } from "../../context/AuthContext";
 
 const Login: React.FC = () => {
-  console.log("🟢 Login component mounted");
+  const { login } = useAuth();
 
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
@@ -39,8 +40,7 @@ const Login: React.FC = () => {
       }
 
       // ✅ SAVE TOKEN + ADMIN
-      localStorage.setItem("adminToken", res.data.token);
-      localStorage.setItem("admin", JSON.stringify(res.data.admin));
+      login(res.data.token, res.data.admin);
 
       toast.success("Login successful");
       navigate("/home");

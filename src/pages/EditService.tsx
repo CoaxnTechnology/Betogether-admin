@@ -1,6 +1,6 @@
 import React, { useState, ChangeEvent, FormEvent, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import axios from "axios";
+import client from "../api/client";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { Button } from "@/components/ui/button";
@@ -73,9 +73,7 @@ const EditService: React.FC = () => {
 
     const fetchService = async () => {
       try {
-        const res = await axios.get(
-          `https://api.betogetherapp.com/api/admin/service/${serviceId}`
-        );
+        const res = await client.get(`/service/${serviceId}`);
 
         console.log("✅ Service response:", res.data);
 
@@ -202,14 +200,12 @@ const EditService: React.FC = () => {
         fd.append("image", imageFile);
       }
 
-      const adminToken = localStorage.getItem("token");
-      await axios.patch(
-        "https://api.betogetherapp.com/api/admin/service/update",
+      await client.patch(
+        "/service/update",
         fd,
         {
           headers: {
             "Content-Type": "multipart/form-data",
-            Authorization: `Bearer ${adminToken}`,
           },
         }
       );

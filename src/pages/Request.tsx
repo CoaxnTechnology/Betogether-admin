@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
+import client, { API_BASE_URL } from "../api/client";
 import {
   Trash2,
   CheckCircle,
@@ -30,23 +30,17 @@ type DeleteRequest = {
   };
 };
 
-const API_BASE = `${import.meta.env.VITE_API_BASE_URL}/api/service`;
+const SERVICE_BASE = `${API_BASE_URL}/api/service`;
 const Request: React.FC = () => {
   const [requests, setRequests] = useState<DeleteRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
 
-  const token = localStorage.getItem("adminToken");
-
   // ================= FETCH REQUESTS =================
   const fetchRequests = async () => {
     try {
       setLoading(true);
-      const res = await axios.get(`${API_BASE}/delete-requests`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const res = await client.get(`${SERVICE_BASE}/delete-requests`);
       setRequests(res.data.data || []);
     } catch {
       toast.error("Failed to load delete requests");
@@ -68,15 +62,7 @@ const Request: React.FC = () => {
         onClick: async () => {
           try {
             setActionLoading(serviceId);
-            await axios.post(
-              `${API_BASE}/approve-delete/${serviceId}`,
-              {},
-              {
-                headers: {
-                  Authorization: `Bearer ${token}`,
-                },
-              }
-            );
+            await client.post(`${SERVICE_BASE}/approve-delete/${serviceId}`, {});
             toast.success("Service deleted successfully");
             fetchRequests();
           } catch {
@@ -98,15 +84,7 @@ const Request: React.FC = () => {
         onClick: async () => {
           try {
             setActionLoading(serviceId);
-            await axios.post(
-              `${API_BASE}/reject-delete/${serviceId}`,
-              {},
-              {
-                headers: {
-                  Authorization: `Bearer ${token}`,
-                },
-              }
-            );
+            await client.post(`${SERVICE_BASE}/reject-delete/${serviceId}`, {});
             toast.success("Delete request rejected");
             fetchRequests();
           } catch {

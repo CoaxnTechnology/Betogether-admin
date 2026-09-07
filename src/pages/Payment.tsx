@@ -1,7 +1,5 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-const API_ADMIN_PATH = import.meta.env.VITE_API_ADMIN_PATH;
+import client from "../api/client";
 import {
   CreditCard,
   Percent,
@@ -37,8 +35,8 @@ const PaymentSettings = () => {
       setLoading(true);
 
       const [commissionRes, cancelRes] = await Promise.all([
-        axios.get(`${API_BASE_URL}${API_ADMIN_PATH}/commission`),
-        axios.get(`${API_BASE_URL}${API_ADMIN_PATH}/cancellation`),
+        client.get("/commission"),
+        client.get("/cancellation"),
       ]);
 
       const providerValue =
@@ -73,10 +71,8 @@ const PaymentSettings = () => {
     try {
       setPaymentLoading(true);
 
-      const res = await axios.get(
-
-        `${API_BASE_URL}${API_ADMIN_PATH}/payment?page=${pageNumber}&limit=${limit}`
-
+      const res = await client.get(
+        `/payment?page=${pageNumber}&limit=${limit}`,
       );
 
       setPayments(res.data.data || []);
@@ -96,14 +92,11 @@ const PaymentSettings = () => {
 
   const handleCommissionSave = async () => {
     try {
-      await axios.put(
-        `${API_BASE_URL}${API_ADMIN_PATH}/commission`,
-        {
-          providerCommissionPercentage: Number(providerCommission),
+      await client.put("/commission", {
+        providerCommissionPercentage: Number(providerCommission),
 
-          customerCommissionPercentage: Number(customerCommission),
-        },
-      );
+        customerCommissionPercentage: Number(customerCommission),
+      });
       fetchSettings();
       toast.success("Commission updated ✅");
     } catch (err) {
@@ -113,15 +106,12 @@ const PaymentSettings = () => {
 
   const handleCancellationSave = async () => {
     try {
-      await axios.put(
-        `${API_BASE_URL}${API_ADMIN_PATH}/cancellation`,
-        {
-          enabled: cancellationEnabled,
-          percentage: cancellationEnabled
-            ? Number(cancellationPercentage)
-            : null,
-        },
-      );
+      await client.put("/cancellation", {
+        enabled: cancellationEnabled,
+        percentage: cancellationEnabled
+          ? Number(cancellationPercentage)
+          : null,
+      });
       fetchSettings();
       toast.success("Cancellation setting updated ✅");
     } catch (err) {

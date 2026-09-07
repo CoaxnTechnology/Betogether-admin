@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import axios from "../API/baseUrl";
+import axios from "../api/client";
 import { Button } from "@/components/ui/button";
 import { useNavigate, Link } from "react-router-dom";
 import { toast, ToastContainer } from "react-toastify";

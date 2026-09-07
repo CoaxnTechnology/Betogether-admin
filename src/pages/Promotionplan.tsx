@@ -1,8 +1,7 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
+import client from "../api/client";
 import toast, { Toaster } from "react-hot-toast";
 import Swal from "sweetalert2";
-const API_BASE = `${import.meta.env.VITE_API_BASE_URL}${import.meta.env.VITE_API_ADMIN_PATH}`;
 interface Plan {
   _id: string;
   name: string;
@@ -26,7 +25,7 @@ export default function PromotionPlan() {
   //////////////////////////////////////////////////
   const fetchPlans = async () => {
     try {
-  const res = await axios.get(`${API_BASE}/promotion-plans`);
+  const res = await client.get("/promotion-plans");
 
   const sorted = res.data.plans.sort(
     (a: Plan, b: Plan) => a.days - b.days
@@ -71,16 +70,20 @@ export default function PromotionPlan() {
       setLoading(true);
 
       if (editingId) {
-        await axios.put(
-          `${API_BASE}/promotion-plan/${editingId}`,
-          { name, description, days, price }
-        );
+        await client.put(`/promotion-plan/${editingId}`, {
+          name,
+          description,
+          days,
+          price,
+        });
         toast.success("Promotion plan updated successfully ✅");
       } else {
-        await axios.post(
-          `${API_BASE}/create-promotion-plan`,
-          { name, description, days, price }
-        );
+        await client.post("/create-promotion-plan", {
+          name,
+          description,
+          days,
+          price,
+        });
         toast.success("Promotion plan added successfully 🎉");
       }
 
@@ -123,9 +126,7 @@ export default function PromotionPlan() {
     if (!result.isConfirmed) return;
 
     try {
-      await axios.delete(
-        `${API_BASE}/promotion-plan/${id}`
-      );
+      await client.delete(`/promotion-plan/${id}`);
       toast.success("Promotion plan deleted 🗑️");
       fetchPlans();
     } catch (err) {

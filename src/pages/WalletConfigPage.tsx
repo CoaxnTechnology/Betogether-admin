@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import api from "../API/baseUrl";
+import api from "../api/client";
 
 interface WalletConfig {
   _id?: string;

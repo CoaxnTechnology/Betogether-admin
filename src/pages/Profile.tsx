@@ -1,8 +1,5 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
-const API_BASE = `${import.meta.env.VITE_API_BASE_URL}${import.meta.env.VITE_API_ADMIN_PATH}`;
-
-const API_TIMEOUT = Number(import.meta.env.VITE_API_TIMEOUT);
+import client from "../api/client";
 import {
   UserCircle,
   Phone,
@@ -14,6 +11,7 @@ import {
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 /* ================= PASSWORD STRENGTH ================= */
 const getPasswordStrength = (password: string) => {
   let score = 0;
@@ -31,7 +29,7 @@ const getPasswordStrength = (password: string) => {
 
 const Profile: React.FC = () => {
   const navigate = useNavigate();
-  const token = localStorage.getItem("adminToken");
+  const { token, logout } = useAuth();
 
   /* ================= STATES ================= */
   const [loading, setLoading] = useState(false);
@@ -81,12 +79,7 @@ const Profile: React.FC = () => {
 
     setLoading(true);
 
-    axios.get(`${API_BASE}/profile`, {
-  headers: {
-    Authorization: `Bearer ${token}`,
-  },
-  timeout: API_TIMEOUT,
-})
+    client.get("/profile")
       .then((res) => {
         const d = res.data.data;
         setMobile(d.mobile || "");
@@ -101,22 +94,11 @@ const Profile: React.FC = () => {
       .finally(() => setLoading(false));
   }, []);
 
-  const authHeader = {
-  headers: {
-    Authorization: `Bearer ${token}`,
-  },
-  timeout: API_TIMEOUT,
-};
-
   /* ================= API HANDLERS ================= */
 
   const updateMobile = async () => {
     try {
-      await axios.put(
-        `${API_BASE}/profile/update-mobile`,
-        { mobile },
-        authHeader
-      );
+      await client.put("/profile/update-mobile", { mobile });
       toast.success("Mobile number updated");
     } catch (err: any) {
       toast.error(err.response?.data?.message || "Mobile update failed");
@@ -127,11 +109,7 @@ const Profile: React.FC = () => {
     if (!email) return toast.error("Email is required");
 
     try {
-      await axios.post(
-        `${API_BASE}/profile/email/send-otp`,
-        { email },
-        authHeader
-      );
+      await client.post("/profile/email/send-otp", { email });
       setOtpSent(true);
       toast.success("OTP sent to email");
     } catch {
@@ -143,11 +121,7 @@ const Profile: React.FC = () => {
     if (!otp) return toast.error("OTP is required");
 
     try {
-      await axios.post(
-        `${API_BASE}/profile/email/verify-otp`,
-        { otp },
-        authHeader
-      );
+      await client.post("/profile/email/verify-otp", { otp });
       toast.success("Email updated successfully");
       setOtp("");
       setOtpSent(false);
@@ -168,17 +142,15 @@ const Profile: React.FC = () => {
     }
 
     try {
-      await axios.put(
-        `${API_BASE}/profile/update-password`,
-        { oldPassword, newPassword },
-        authHeader
-      );
+      await client.put("/profile/update-password", {
+        oldPassword,
+        newPassword,
+      });
 
       toast.success("Password updated. Logging out...");
 
       setTimeout(() => {
-        localStorage.removeItem("adminToken");
-        localStorage.removeItem("admin");
+        logout();
         navigate("/");
       }, 2000);
     } catch (err: any) {
@@ -188,11 +160,11 @@ const Profile: React.FC = () => {
 
   const updateSupport = async () => {
     try {
-      await axios.put(
-        `${API_BASE}/profile/support`,
-        { supportPhone, supportEmail, supportTime },
-        authHeader
-      );
+      await client.put("/profile/support", {
+        supportPhone,
+        supportEmail,
+        supportTime,
+      });
       toast.success("Support info updated");
     } catch {
       toast.error("Failed to update support info");

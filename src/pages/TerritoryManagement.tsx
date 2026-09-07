@@ -6,7 +6,7 @@ import {
   deleteTerritory,
   getTerritories,
   updateTerritory,
-} from "../API/territoryApi";
+} from "../api/territory.api";
 
 interface Territory {
   _id: string;
@@ -22,8 +22,6 @@ interface Territory {
 const libraries: ("places")[] = ["places"];
 
 const TerritoryManagement = () => {
-  const token = localStorage.getItem("adminToken") || "";
-
   const [territories, setTerritories] = useState<Territory[]>([]);
 
   const [city, setCity] = useState("");
@@ -51,7 +49,7 @@ const TerritoryManagement = () => {
   const [editingCountry, setEditingCountry] = useState("");
       const loadTerritories = async () => {
     try {
-      const res = await getTerritories(token);
+      const res = await getTerritories();
 
       console.log("getTerritories API response:", res);
 
@@ -121,13 +119,10 @@ const TerritoryManagement = () => {
         country,
       });
 
-      const res = await createTerritory(
-        {
-          city,
-          country,
-        },
-        token
-      );
+      const res = await createTerritory({
+        city,
+        country,
+      });
 
       console.log("createTerritory API response:", res);
 
@@ -154,7 +149,7 @@ const TerritoryManagement = () => {
         territoryId
       );
 
-      const res = await deleteTerritory(territoryId, token);
+      const res = await deleteTerritory(territoryId);
 
       console.log("deleteTerritory API response:", res);
 
@@ -218,11 +213,10 @@ const TerritoryManagement = () => {
         country: editingCountry,
       });
 
-      const res = await updateTerritory(
-        editingId,
-        { city: editingCity, country: editingCountry },
-        token
-      );
+      const res = await updateTerritory(editingId, {
+        city: editingCity,
+        country: editingCountry,
+      });
 
       console.log("updateTerritory API response:", res);
 

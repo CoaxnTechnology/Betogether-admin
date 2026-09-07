@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import api from "../API/baseUrl";
+import api from "../api/client";
 import toast, { Toaster } from "react-hot-toast";
 import Swal from "sweetalert2";
 

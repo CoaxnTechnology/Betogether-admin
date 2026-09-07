@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import api from "../API/baseUrl"; // Axios instance with BASE_URL
+import api from "../api/client"; // Axios instance with BASE_URL
 
 interface CustomerType {
   _id: string;

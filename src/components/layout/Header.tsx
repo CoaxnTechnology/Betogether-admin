@@ -1,7 +1,6 @@
 import { FC, useEffect, useState } from "react";
 import { BellRinging, GearSix, UserCircle } from "phosphor-react";
 import { Button } from "@/components/ui/button";
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,32 +11,26 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import client from "../../api/client";
+import { useAuth } from "../../context/AuthContext";
 
 export const Header: FC = () => {
   const navigate = useNavigate();
-
-  const admin = localStorage.getItem("admin");
-  const adminName = admin ? JSON.parse(admin).name : "Admin";
+  const { admin, logout } = useAuth();
+  const adminName = admin?.name || "Admin";
 
   const [deleteCount, setDeleteCount] = useState(0);
 
-const fetchDeleteCount = async () => {
-  try {
-    const res = await axios.get(
-      `${API_BASE_URL}/api/admin/pending-delete-count`,
-      {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("adminToken")}`,
-        },
-      }
-    );
+  const fetchDeleteCount = async () => {
+    try {
+      const res = await client.get("/pending-delete-count");
 
-    setDeleteCount(res.data.count || 0);
-  } catch (err) {
-    console.error("Delete count fetch error:", err);
-  }
-};
+      setDeleteCount(res.data.count || 0);
+    } catch (err) {
+      console.error("Delete count fetch error:", err);
+    }
+  };
+
   useEffect(() => {
     fetchDeleteCount();
 
@@ -63,10 +56,7 @@ const fetchDeleteCount = async () => {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("admin");
-    localStorage.removeItem("adminToken");
-
+    logout();
     navigate("/");
   };
 
