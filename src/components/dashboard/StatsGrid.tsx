@@ -27,9 +27,7 @@ export function StatsGrid() {
             title: "Total Users",
             value:
               data.summaryWidgets.find((w: any) => w.title === "Total Users")
-                ?.value ||
-              "8,542"?.valueOf ||
-              0,
+                ?.value || 0,
             icon: "users",
             color: "primary",
           },
@@ -37,9 +35,7 @@ export function StatsGrid() {
             title: "Total Services",
             value:
               data.summaryWidgets.find((w: any) => w.title === "Total Services")
-                ?.value ||
-              "126"?.valueOf ||
-              0,
+                ?.value || 0,
             icon: "Briefcase",
             color: "success",
           },
