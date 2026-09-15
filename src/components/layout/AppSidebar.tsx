@@ -13,6 +13,7 @@ import {
   UserRoundX,
   Globe,
   BadgeCheck,
+  Newspaper,
 } from "lucide-react";
 
 import {
@@ -71,6 +72,11 @@ const navigationItems: NavItem[] = [
     title: "Ambassadors",
     url: "/ambassadors",
     icon: Users,
+  },
+  {
+    title: "Blog",
+    url: "/blogs",
+    icon: Newspaper,
   },
 ];
 

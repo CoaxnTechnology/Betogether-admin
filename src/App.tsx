@@ -32,6 +32,8 @@ import TerritoryManagement from "./pages/TerritoryManagement";
 import AmbassadorApplications from "./pages/AmbassadorApplications";
 import Ambassadors from "./pages/Ambassadors";
 import AmbassadorDetails from "./pages/AmbassadorDetails";
+import Blog from "./pages/Blog";
+import BlogEditor from "./pages/BlogEditor";
 const queryClient = new QueryClient();
 
 function App() {
@@ -272,6 +274,36 @@ function App() {
                 <ProtectedRoute>
                   <Layout>
                     <AmbassadorDetails />
+                  </Layout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/blogs"
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <Blog />
+                  </Layout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/blogs/new"
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <BlogEditor />
+                  </Layout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/blogs/edit/:id"
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <BlogEditor />
                   </Layout>
                 </ProtectedRoute>
               }
