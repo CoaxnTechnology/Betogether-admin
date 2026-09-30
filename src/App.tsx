@@ -22,10 +22,9 @@ import AllBookings from "./pages/Booking";
 import EditService from "./pages/EditService";
 import Request from "./pages/Request";
 import Profile from "./pages/Profile";
-import PromotionPlan from "./pages/Promotionplan";
 import ResetPassword from "./pages/reset-password";
 import ReportServicePage from "./pages/ReportServicePage";
-import WalletConfigPage from "./pages/WalletConfigPage";
+import SettingsPage from "./pages/SettingsPage";
 import DeletedAccounts from "./pages/DeletedAccounts";
 import DeletedAccountDetails from "./pages/DeletedAccountDetails";
 import TerritoryManagement from "./pages/TerritoryManagement";
@@ -189,16 +188,6 @@ function App() {
               }
             />
             <Route
-              path="/promotion"
-              element={
-                <ProtectedRoute>
-                  <Layout>
-                    <PromotionPlan />
-                  </Layout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
               path="/report-service"
               element={
                 <ProtectedRoute>
@@ -209,11 +198,11 @@ function App() {
               }
             />
             <Route
-              path="/wallet-config"
+              path="/settings"
               element={
                 <ProtectedRoute>
                   <Layout>
-                    <WalletConfigPage />
+                    <SettingsPage />
                   </Layout>
                 </ProtectedRoute>
               }

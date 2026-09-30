@@ -152,7 +152,7 @@ export const Header: FC = () => {
                 Profile
               </DropdownMenuItem>
 
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigate("/settings")}>
                 <GearSix className="mr-2 h-4 w-4" />
                 Settings
               </DropdownMenuItem>
