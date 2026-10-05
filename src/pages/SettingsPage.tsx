@@ -3,7 +3,7 @@ import client from "../api/client";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Swal from "sweetalert2";
-import { Settings, Percent, XCircle, Wallet, Megaphone, Pencil, Trash2 } from "lucide-react";
+import { Settings, Percent, XCircle, Wallet, Megaphone, Pencil, Trash2, Clock } from "lucide-react";
 import {
   Tabs,
   TabsContent,
@@ -24,16 +24,33 @@ const CommissionCancellationTab = () => {
   const [cancellationPercentage, setCancellationPercentage] = useState("");
   const [savedCancellation, setSavedCancellation] = useState("");
 
+  // Service Request late cancellation (offer policy "late_fee", customer
+  // cancels < 1 hour before the start). 0 = nothing is charged.
+  const [requestLateFee, setRequestLateFee] = useState("");
+  const [requestAdminShare, setRequestAdminShare] = useState("");
+  const [savedRequestLateFee, setSavedRequestLateFee] = useState(0);
+  const [savedRequestAdminShare, setSavedRequestAdminShare] = useState(0);
+
   const [loading, setLoading] = useState(true);
 
   const fetchSettings = async () => {
     try {
       setLoading(true);
 
-      const [commissionRes, cancelRes] = await Promise.all([
+      const [commissionRes, cancelRes, requestCancelRes] = await Promise.all([
         client.get("/commission"),
         client.get("/cancellation"),
+        client.get("/commission/request-cancellation"),
       ]);
+
+      const lateFee =
+        requestCancelRes.data?.data?.requestLateCancellationPercentage ?? 0;
+      const adminShare =
+        requestCancelRes.data?.data?.requestLateCancellationAdminSharePercentage ?? 0;
+      setRequestLateFee(lateFee.toString());
+      setRequestAdminShare(adminShare.toString());
+      setSavedRequestLateFee(lateFee);
+      setSavedRequestAdminShare(adminShare);
 
       const providerValue =
         commissionRes.data?.providerCommissionPercentage ?? "";
@@ -93,6 +110,54 @@ const CommissionCancellationTab = () => {
       toast.error("Error updating cancellation setting ❌");
     }
   };
+
+  const isValidPercent = (value: string) => {
+    const n = Number(value);
+    return value.trim() !== "" && Number.isFinite(n) && n >= 0 && n <= 100;
+  };
+
+  const handleRequestCancellationSave = async () => {
+    if (!isValidPercent(requestLateFee) || !isValidPercent(requestAdminShare)) {
+      toast.error("Both values must be between 0 and 100");
+      return;
+    }
+    try {
+      await client.put("/commission/request-cancellation", {
+        requestLateCancellationPercentage: Number(requestLateFee),
+        requestLateCancellationAdminSharePercentage: Number(requestAdminShare),
+      });
+      fetchSettings();
+      toast.success("Request cancellation charges updated ✅");
+    } catch (err) {
+      toast.error("Error updating request cancellation charges ❌");
+    }
+  };
+
+  const handleRequestCancellationDelete = async () => {
+    const confirm = await Swal.fire({
+      title: "Remove late cancellation charge?",
+      text: "Customers will get a full refund on late cancellations of request bookings.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Yes, remove",
+      confirmButtonColor: "#e11d48",
+    });
+    if (!confirm.isConfirmed) return;
+    try {
+      await client.delete("/commission/request-cancellation");
+      fetchSettings();
+      toast.success("Request cancellation charges removed ✅");
+    } catch (err) {
+      toast.error("Error removing request cancellation charges ❌");
+    }
+  };
+
+  // Live example on a €100 booking so the admin sees what each number does.
+  const exampleFee = isValidPercent(requestLateFee) ? Number(requestLateFee) : 0;
+  const exampleAdmin = isValidPercent(requestAdminShare)
+    ? (exampleFee * Number(requestAdminShare)) / 100
+    : 0;
+  const formatEuro = (n: number) => `€${Number(n.toFixed(2))}`;
 
   if (loading) {
     return (
@@ -200,6 +265,81 @@ const CommissionCancellationTab = () => {
           Currently saved:{" "}
           <b className="text-slate-700">
             {savedCancellation ? `${savedCancellation}%` : "Disabled"}
+          </b>
+        </div>
+      </div>
+
+      {/* SERVICE REQUEST LATE CANCELLATION CARD */}
+      <div className="bg-white shadow-sm rounded-2xl p-8 space-y-5 border border-slate-200 lg:col-span-2">
+        <h3 className="text-lg font-semibold flex items-center gap-2 text-slate-800">
+          <Clock className="h-5 w-5 text-amber-600" /> Service Request Late Cancellation
+        </h3>
+        <p className="text-sm text-slate-500">
+          Applies to request bookings whose provider chose the{" "}
+          <b>"Late cancellation fee"</b> policy, when the customer cancels less than
+          1 hour before the start. Set to 0 to charge nothing.
+        </p>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block mb-1.5 text-sm font-medium text-slate-600">
+              Charged to customer (% of booking amount)
+            </label>
+            <input
+              type="number"
+              min={0}
+              max={100}
+              placeholder="e.g. 30"
+              value={requestLateFee}
+              onChange={(e) => setRequestLateFee(e.target.value)}
+              className="w-full p-3.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none"
+            />
+          </div>
+
+          <div>
+            <label className="block mb-1.5 text-sm font-medium text-slate-600">
+              BeTogether share (% of the charged amount)
+            </label>
+            <input
+              type="number"
+              min={0}
+              max={100}
+              placeholder="e.g. 10"
+              value={requestAdminShare}
+              onChange={(e) => setRequestAdminShare(e.target.value)}
+              className="w-full p-3.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none"
+            />
+          </div>
+        </div>
+
+        <div className="rounded-xl bg-amber-50 border border-amber-100 p-4 text-sm text-slate-700">
+          Example on a €100 booking: customer gets back{" "}
+          <b>{formatEuro(100 - exampleFee)}</b>, BeTogether keeps{" "}
+          <b>{formatEuro(exampleAdmin)}</b>, provider receives{" "}
+          <b>{formatEuro(exampleFee - exampleAdmin)}</b>.
+        </div>
+
+        <div className="flex flex-col sm:flex-row gap-3">
+          <button
+            onClick={handleRequestCancellationSave}
+            className="flex-1 bg-amber-600 hover:bg-amber-700 text-white p-3.5 rounded-xl font-medium transition"
+          >
+            Save Late Cancellation Charge
+          </button>
+          <button
+            onClick={handleRequestCancellationDelete}
+            className="flex items-center justify-center gap-2 border border-rose-300 text-rose-600 hover:bg-rose-50 p-3.5 rounded-xl font-medium transition"
+          >
+            <Trash2 className="h-4 w-4" /> Remove
+          </button>
+        </div>
+
+        <div className="pt-3 border-t border-slate-100 text-sm text-slate-500">
+          Currently saved:{" "}
+          <b className="text-slate-700">
+            {savedRequestLateFee > 0
+              ? `${savedRequestLateFee}% charged · BeTogether keeps ${savedRequestAdminShare}% of it`
+              : "No charge (0%)"}
           </b>
         </div>
       </div>
