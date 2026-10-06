@@ -483,6 +483,17 @@ export default function User() {
                         >
                           Invitation Sent
                         </Button>
+                      ) : user.status !== "active" ? (
+                        // Only verified, active accounts can be invited.
+                        <Button
+                          disabled
+                          title="Only active users can be invited"
+                          className="bg-gray-300 hover:bg-gray-300 text-gray-600 cursor-not-allowed"
+                        >
+                          {user.status === "pending_verification"
+                            ? "Not Verified"
+                            : "Not Active"}
+                        </Button>
                       ) : (
                         <Button
                           onClick={() => {
