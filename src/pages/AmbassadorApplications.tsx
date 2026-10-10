@@ -103,21 +103,11 @@ const applicantEmail = (a: Application) => a.user?.email || a.email || "-";
 const applicantPhone = (a: Application) => a.user?.mobile || a.phoneNumber || "-";
 const applicantCity = (a: Application) => a.city || a.user?.city || "-";
 
-// Applicants often type links without a scheme ("www.instagram.com/x").
-// As an href that is a relative path, so the browser opened it on the admin
-// site itself. Add https:// when missing; anything that isn't http(s)
-// (e.g. "javascript:") is not turned into a link at all.
-const toExternalUrl = (raw: string): string | null => {
-  const value = raw?.trim();
-  if (!value) return null;
-  const withScheme = /^[a-z][a-z\d+.-]*:/i.test(value)
-    ? value
-    : `https://${value.replace(/^\/+/, "")}`;
+const linkLabel = (url: string, index: number) => {
   try {
-    const url = new URL(withScheme);
-    return url.protocol === "http:" || url.protocol === "https:" ? url.href : null;
+    return new URL(url).hostname.replace(/^www\./, "");
   } catch {
-    return null;
+    return `Link ${index + 1}`;
   }
 };
 
@@ -627,28 +617,18 @@ const AmbassadorApplications = () => {
                   <h3 className="mb-2 text-sm font-semibold text-gray-900">Social Media Links</h3>
                   <div className="flex flex-wrap gap-2">
                     {detailsApplication.socialMediaUrls?.length ? (
-                      detailsApplication.socialMediaUrls.map((url, index) => {
-                        const href = toExternalUrl(url);
-                        return href ? (
-                          <a
-                            key={index}
-                            href={href}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="rounded-lg bg-blue-100 px-3 py-2 text-sm text-blue-700 hover:bg-blue-200"
-                          >
-                            Link {index + 1}
-                          </a>
-                        ) : (
-                          <span
-                            key={index}
-                            title="Not a valid link"
-                            className="rounded-lg bg-gray-100 px-3 py-2 text-sm text-gray-500"
-                          >
-                            Link {index + 1}
-                          </span>
-                        );
-                      })
+                      detailsApplication.socialMediaUrls.map((url, index) => (
+                        <a
+                          key={index}
+                          href={url}
+                          target="_blank"
+                          rel="noreferrer"
+                          title={url}
+                          className="max-w-full truncate rounded-lg bg-blue-100 px-3 py-2 text-sm text-blue-700 hover:bg-blue-200"
+                        >
+                          {linkLabel(url, index)}
+                        </a>
+                      ))
                     ) : (
                       <span className="text-sm text-gray-500">No links</span>
                     )}
@@ -855,4 +835,3 @@ const AmbassadorApplications = () => {
 };
 
 export default AmbassadorApplications;
-
