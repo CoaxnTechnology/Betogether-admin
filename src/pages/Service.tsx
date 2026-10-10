@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "../API/baseUrl";
+import axios from "../api/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Briefcase, Eye, Trash2 } from "lucide-react";
@@ -51,11 +51,7 @@ const Service: React.FC = () => {
     if (!confirm) return;
 
     try {
-      const res = await axios.delete(`/admin-force-delete/${serviceId}`, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("adminToken")}`,
-        },
-      });
+      const res = await axios.delete(`/admin-force-delete/${serviceId}`);
 
       if (res.data.isSuccess) {
         toast.success("Service deleted");
@@ -68,15 +64,7 @@ const Service: React.FC = () => {
   };
   const handlePromoteService = async (serviceId: string) => {
     try {
-      const res = await axios.post(
-        "/admin/promote-service",
-        { serviceId },
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("adminToken")}`,
-          },
-        },
-      );
+      const res = await axios.post("/admin/promote-service", { serviceId });
 
       if (res.data.success) {
         toast.success("Service promoted for 30 days 🚀");
@@ -98,15 +86,7 @@ const Service: React.FC = () => {
 
   const handleCancelPromotion = async (serviceId: string) => {
     try {
-      const res = await axios.post(
-        "/admin/cancel-promotion",
-        { serviceId },
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("adminToken")}`,
-          },
-        },
-      );
+      const res = await axios.post("/admin/cancel-promotion", { serviceId });
 
       if (res.data.success) {
         toast.success("Promotion cancelled ❌");

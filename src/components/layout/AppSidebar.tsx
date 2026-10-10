@@ -9,10 +9,11 @@ import {
   UserX,
   CreditCard,
   CalendarCheck,
-  Megaphone,
   UserRoundX,
   Globe,
   BadgeCheck,
+  Newspaper,
+  Settings,
 } from "lucide-react";
 
 import {
@@ -48,9 +49,7 @@ const navigationItems: NavItem[] = [
   { title: "Payment", url: "/Payment", icon: CreditCard },
   { title: "Booking", url: "/booking", icon: CalendarCheck },
   { title: "Request", url: "/request", icon: Trash2 },
-  { title: "Promotion", url: "/promotion", icon: Megaphone },
   { title: "Report-Service", url: "/report-service", icon: Flag },
-  { title: "Wallet Config", url: "/wallet-config", icon: Layers },
   // NEW
   {
     title: "Deleted Accounts",
@@ -72,9 +71,23 @@ const navigationItems: NavItem[] = [
     url: "/ambassadors",
     icon: Users,
   },
+  {
+    title: "Blog",
+    url: "/blogs",
+    icon: Newspaper,
+  },
+  {
+    title: "Settings",
+    url: "/settings",
+    icon: Settings,
+  },
 ];
 
-export function AppSidebar() {
+interface AppSidebarProps {
+  notificationCount?: number;
+}
+
+export function AppSidebar({ notificationCount = 0 }: AppSidebarProps) {
   const { state, isMobile, setOpenMobile } = useSidebar();
   const location = useLocation();
   const currentPath = location.pathname;
@@ -181,10 +194,31 @@ export function AppSidebar() {
                             className={getNavCls}
                             onClick={closeMobileSidebar}
                           >
-                            <item.icon className="h-5 w-5 flex-shrink-0" />
+                            <span className="relative flex-shrink-0">
+                              <item.icon className="h-5 w-5" />
+                              {item.title === "Report-Service" &&
+                                notificationCount > 0 && (
+                                  <span className="absolute -top-1.5 -right-1.5 min-w-[16px] h-4 px-1 rounded-full bg-red-600 text-white text-[10px] font-bold flex items-center justify-center leading-none">
+                                    {notificationCount > 99
+                                      ? "99+"
+                                      : notificationCount}
+                                  </span>
+                                )}
+                            </span>
                             {!collapsed && (
-                              <span className="truncate">{item.title}</span>
+                              <span className="truncate flex-1">
+                                {item.title}
+                              </span>
                             )}
+                            {!collapsed &&
+                              item.title === "Report-Service" &&
+                              notificationCount > 0 && (
+                                <span className="min-w-[18px] h-[18px] px-1 rounded-full bg-red-600 text-white text-[10px] font-bold flex items-center justify-center leading-none">
+                                  {notificationCount > 99
+                                    ? "99+"
+                                    : notificationCount}
+                                </span>
+                              )}
                           </NavLink>
                         </SidebarMenuButton>
                       )}

@@ -9,8 +9,8 @@ import {
   getAmbassadorAnalytics,
   removeAmbassador,
   updateAmbassador,
-} from "../API/ambassadorApi";
-import { getTerritories } from "../API/territoryApi";
+} from "../api/ambassador.api";
+import { getTerritories } from "../api/territory.api";
 
 const AmbassadorDetails = () => {
   const { id } = useParams();
@@ -25,8 +25,6 @@ const AmbassadorDetails = () => {
   const [territoryIds, setTerritoryIds] = useState<string[]>([]);
   const [territories, setTerritories] = useState<any[]>([]);
   const [savingEdit, setSavingEdit] = useState(false);
-
-  const token = localStorage.getItem("adminToken") || "";
 
   const [ambassador, setAmbassador] = useState<any>(null);
 
@@ -60,16 +58,10 @@ const AmbassadorDetails = () => {
 
   const loadData = async () => {
     try {
-      console.log("loadData request", { id, hasToken: !!token });
-
-      console.log("Calling getAmbassadorById", { id });
-      console.log("Calling getAmbassadorWalletHistory", { id });
-      console.log("Calling getAmbassadorAnalytics", { id });
-
       const [detailsRes, walletRes, analyticsRes] = await Promise.all([
-        getAmbassadorById(id!, token),
-        getAmbassadorWalletHistory(id!, token),
-        getAmbassadorAnalytics(id!, token),
+        getAmbassadorById(id!),
+        getAmbassadorWalletHistory(id!),
+        getAmbassadorAnalytics(id!),
       ]);
 
       console.log("getAmbassadorById response", detailsRes?.data ?? detailsRes);
@@ -112,7 +104,7 @@ const AmbassadorDetails = () => {
 
   const loadTerritories = async () => {
     try {
-      const res = await getTerritories(token);
+      const res = await getTerritories();
       setTerritories(res.data?.territories || []);
     } catch (err) {
       console.log("Unable to load territories", err);
@@ -157,12 +149,9 @@ const AmbassadorDetails = () => {
   }
   const handleRemoveAmbassador = async () => {
     try {
-      console.log("handleRemoveAmbassador request", { id, hasToken: !!token });
-      const res = await removeAmbassador(id!, token);
-      console.log("removeAmbassador response", res?.data ?? res);
+      const res = await removeAmbassador(id!);
 
       if (res.data?.isSuccess) {
-        console.log("removeAmbassador success, navigating away");
         navigate("/ambassadors");
       }
     } catch (error: any) {
@@ -590,17 +579,13 @@ const AmbassadorDetails = () => {
                       return;
                     }
 
-                    await updateAmbassador(
-                      id!,
-                      {
-                        commissionRate,
-                        territoryIds:
-                          ambassador.ambassadorType === "exclusive"
-                            ? territoryIds
-                            : undefined,
-                      },
-                      token,
-                    );
+                    await updateAmbassador(id!, {
+                      commissionRate,
+                      territoryIds:
+                        ambassador.ambassadorType === "exclusive"
+                          ? territoryIds
+                          : undefined,
+                    });
 
                     toast.success("Ambassador updated successfully.");
                     await loadData();

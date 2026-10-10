@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import client, { API_BASE_URL } from "../api/client";
 import { toast } from "../components/ui/sonner";
 
 type DeletedUser = {
@@ -25,28 +25,14 @@ const DeletedAccounts = () => {
 
   const limit = 10;
 
-  // .env
-  const BASE_URL =
-    import.meta.env.VITE_API_BASE_URL;
-
   const fetchDeletedUsers =
     async () => {
       try {
         setLoading(true);
 
-        const token =
-          localStorage.getItem(
-            "adminToken"
-          );
-
         const res =
-          await axios.get(
-            `${BASE_URL}/api/account/deleted-users`,
-            {
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-            }
+          await client.get(
+            `${API_BASE_URL}/api/account/deleted-users`,
           );
 
         if (

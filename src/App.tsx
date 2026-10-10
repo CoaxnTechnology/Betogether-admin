@@ -3,6 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { AuthProvider } from "./context/AuthContext";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import Layout from "./components/layout/Layout";
@@ -21,24 +22,26 @@ import AllBookings from "./pages/Booking";
 import EditService from "./pages/EditService";
 import Request from "./pages/Request";
 import Profile from "./pages/Profile";
-import PromotionPlan from "./pages/Promotionplan";
 import ResetPassword from "./pages/reset-password";
 import ReportServicePage from "./pages/ReportServicePage";
-import WalletConfigPage from "./pages/WalletConfigPage";
+import SettingsPage from "./pages/SettingsPage";
 import DeletedAccounts from "./pages/DeletedAccounts";
 import DeletedAccountDetails from "./pages/DeletedAccountDetails";
 import TerritoryManagement from "./pages/TerritoryManagement";
 import AmbassadorApplications from "./pages/AmbassadorApplications";
 import Ambassadors from "./pages/Ambassadors";
 import AmbassadorDetails from "./pages/AmbassadorDetails";
+import Blog from "./pages/Blog";
+import BlogEditor from "./pages/BlogEditor";
 const queryClient = new QueryClient();
 
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <BrowserRouter>
-          <Routes>
+      <AuthProvider>
+        <TooltipProvider>
+          <BrowserRouter>
+            <Routes>
             {/* Public Route */}
             <Route path="/" element={<Login />} />
 
@@ -185,16 +188,6 @@ function App() {
               }
             />
             <Route
-              path="/promotion"
-              element={
-                <ProtectedRoute>
-                  <Layout>
-                    <PromotionPlan />
-                  </Layout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
               path="/report-service"
               element={
                 <ProtectedRoute>
@@ -205,11 +198,11 @@ function App() {
               }
             />
             <Route
-              path="/wallet-config"
+              path="/settings"
               element={
                 <ProtectedRoute>
                   <Layout>
-                    <WalletConfigPage />
+                    <SettingsPage />
                   </Layout>
                 </ProtectedRoute>
               }
@@ -274,6 +267,36 @@ function App() {
                 </ProtectedRoute>
               }
             />
+            <Route
+              path="/blogs"
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <Blog />
+                  </Layout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/blogs/new"
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <BlogEditor />
+                  </Layout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/blogs/edit/:id"
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <BlogEditor />
+                  </Layout>
+                </ProtectedRoute>
+              }
+            />
             <Route path="/reset-password" element={<ResetPassword />} />
             {/* Fallback */}
             <Route path="*" element={<NotFound />} />
@@ -282,6 +305,7 @@ function App() {
         <Toaster />
         <Sonner />
       </TooltipProvider>
+      </AuthProvider>
     </QueryClientProvider>
   );
 }

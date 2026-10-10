@@ -1,5 +1,5 @@
 import React, { useState, useEffect, ChangeEvent, FormEvent } from "react";
-import axios from "../API/baseUrl";
+import axios from "../api/client";
 import { useParams, useNavigate } from "react-router-dom";
 import Select from "react-select";
 import { toast, ToastContainer } from "react-toastify";

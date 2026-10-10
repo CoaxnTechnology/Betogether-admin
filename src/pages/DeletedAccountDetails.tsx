@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import axios from "axios";
+import client, { API_BASE_URL } from "../api/client";
 
 type DeletedUserDetails = any;
 
@@ -11,21 +11,12 @@ const DeletedAccountDetails = () => {
 
   const [data, setData] = useState<DeletedUserDetails | null>(null);
 
-  const BASE_URL = import.meta.env.VITE_API_BASE_URL;
-
   const fetchDetails = async () => {
     try {
       setLoading(true);
 
-      const token = localStorage.getItem("adminToken");
-
-      const res = await axios.get(
-        `${BASE_URL}/api/account/deleted-users/${backupId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
+      const res = await client.get(
+        `${API_BASE_URL}/api/account/deleted-users/${backupId}`,
       );
 
       if (res.data.success) {

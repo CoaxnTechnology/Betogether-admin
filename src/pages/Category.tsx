@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import axios from "../API/baseUrl";
+import axios from "../api/client";
 import { toast, ToastContainer } from "react-toastify";
 import { Button } from "@/components/ui/button";
 import "react-toastify/dist/ReactToastify.css";

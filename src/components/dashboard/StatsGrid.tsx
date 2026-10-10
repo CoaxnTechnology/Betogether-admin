@@ -1,7 +1,7 @@
 import { ChartCard } from "./ChartCard";
 import { SummaryWidget } from "./SummaryWidget";
 import { useEffect, useState } from "react";
-import axios from "../../API/baseUrl";
+import axios from "../../api/client";
 const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 export function StatsGrid() {
